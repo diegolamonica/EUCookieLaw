@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="EUCookieLaw.js"></script>
+
+    <script>
+
+        new EUCookieLaw({
+            message: 'La legge europea richiede il tuo consenso prima di conservare i cookie. Me lo consenti?'
+        });
+
+
+    </script>
+
+</head>
+<body>
+<p>
+    <button id="set-a-cookie">Set a cookie</button>
+</p>
+<pre id="cookies"></pre>
+<script>
+
+    document.querySelector("#set-a-cookie").addEventListener("click", function () {
+        document.cookie = "test-cookie" + Math.random() + "=stored";
+
+        document.querySelector("#cookies").innerHTML = "Current document.cookie: <strong>" + document.cookie + '</strong>';
+    });
+    document.querySelector("#cookies").innerHTML = "Current document.cookie: <strong>" + (document.cookie ? document.cookie : 'undefined') + '</strong>';
+</script>
+</body>
+</html>
