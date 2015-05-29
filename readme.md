@@ -13,7 +13,9 @@ It simply alters the default `document.cookie` behavior to disallow cookies to b
 
 ## How to use
 
-The only thing you really need to download is the script file `EUCookieLaw.js` 
+## Client side
+
+Download the script file `EUCookieLaw.js` 
 
 Add this code in your HTML `head` section (better if before all others JavaScripts)
 ```html
@@ -28,19 +30,28 @@ Add this code in your HTML `head` section (better if before all others JavaScrip
 If the user accepts the agreement then EUCookieLaw will store a cookie for itself (to remember that the user accepted the agreement) named `__eucookielaw` with `true` as value,
 that lives during the current session.  
 
-## Customize the behavior
+### Customize the behavior
 the `EUCookieLaw` initialization expect an Object with the following properties:
-* `message` is the message used by the default confirmation dialog.
-* `showAgreement` is the callback method that will show the dialog with the user agreement about the cookie usage. If you use a syncronous mode to show a dialog (eg. `confirm` method) 
-  the `showAgreement` must return `true` if the user have accepted the agreement, in all other cases (user rejected the agreement or in asyncronous mode) it must return `false`.   
 
-once `UECookieLaw` is initialized, you can access some useful methods in your JavaScript:
+* `message` is the message used by the default confirmation dialog. In the case of `showBanner`, the `message` can be an HTML content.
+* `showAgreement` is the callback method that will show the dialog with the user agreement about the cookie usage. If you 
+  use a syncronous mode to show a dialog (eg. `confirm` method) the `showAgreement` must return `true` if the user have 
+  accepted the agreement, in all other cases (user rejected the agreement or in asyncronous mode) it must return `false`.
+* `showBanner` (`boolean`)if you want to show a banner at the top of your page you need to set tis option to `true`. 
+* `bannerTitle` (only if `showBanner` is `true`) the banner title
+* `agreeLabel` (only if `showBanner` is `true`) the agree button label. Default is `I agree`
+* `disagreeLabel` (only if `showBanner` is `true`) the disagreement button label. Default is `Disagree`
+* `reload` if `true` the page will be refreshed after the user accepts the agreement. This is useful is used in 
+  conjunction with the server side part.
+
+Once `UECookieLaw` is initialized, you can access some useful methods in your JavaScript:
 
 * `enableCookies` enables the site to store cookies
+* `reject` reject the cookies agreement
 * `isRejected` if the user have rejected the request to store cookie
 * `isCookieEnabled` if the site can store cookies
 
-### Custom agreement example
+#### Custom agreement example
 
 In the sync mode ([see demo](http://diegolamonica.info/demo/cookielaw/demo1.html)):
 ```html
@@ -83,6 +94,66 @@ Async mode ([see demo](http://diegolamonica.info/demo/cookielaw/demo2.html)):
     });
 </script>
 ```
+
+With agreement banner ([see demo](http://diegolamonica.info/demo/cookielaw/demo3.html)): 
+```html
+<script src="EUCookieLaw.js"></script>
+<script>
+
+    new EUCookieLaw({
+        message: "La legge prevede l'autorizzazione all'utilizzo dei cookie. Me la vuoi dare per favore?",
+        showBanner: true,
+        bannerTitle: 'Autorizzazione alla conservazione dei cookie',
+        agreeLabel: 'Do il mio consenso',
+        disagreeLabel: 'Nego il consenso'
+    });
+</script>
+```
+
+## Server Side
+
+The server-side script intercept the output buffer and will remove the sent cookies when user has not yet approved the
+agreement.
+
+Then you should include the file `eucookielaw-header.php` as the first operation on your server.
+This will ensure you that any of your script or CMS like Wordpress, Drupal, Joomla or whatever you are using, is able to 
+write a cookie if the user doesn't given his consensus.
+
+```php
+// This must be the first line of code of your main, always called, file.
+require_once 'eucookielaw-header.php'; 
+```
+
+However if the server already detected that the user agreed the cookie law agreement the 
+script does not override the built-in function.
+
+## CSS Cookie Banner Customization
+The structure of generated banner is the following:
+
+```html
+<div class="eucookielaw-banner" id="eucookielaw-135">
+  <div class="well">
+    <h1 class="banner-title">The banner title</h1>
+    <p class="banner-message">The banner message</p>
+    <p class="banner-agreement-buttons text-right">
+      <a class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">Disagree</a> 
+      <a class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies();">Agree</a>
+    </p>
+  </div>
+</div>
+```
+
+* `.eucookielaw-banner` is the banner container it will have a random `id` attribute name that 
+starts always with `eucookielaw-` and then followed by a number between `0` and `200`.
+* `.well` is the inner container
+* `h1.banner-title` is the banner title
+* `p.banner-message` is the banner html message
+* `p.banner-agreement-buttons.text-right` is the buttons container for the agree/disagree buttons
+* `a.disagree-button` is the disagree button it implements the CSS classes `btn` and `btn-danger`
+* `a.disagree-button` is the agree button it implements the CSS classes `btn` and `btn-primary`
+
+You can make your own CSS to build a custom aspect for the banner. 
+However, if you prefer, you can start from the bundled CSS.  
 
 # Donations
 If you find this script useful, and since I've noticed that nobody did this script before of me, 

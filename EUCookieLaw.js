@@ -12,10 +12,13 @@
 var EUCookieLaw = (function (doc) {
 	var setProperty = function (object, prop, _set, _get) {
 			if (typeof(Object.defineProperty) === 'function') {
-				Object.defineProperty(object, prop, {
-					set: _set,
-					get: _get
-				});
+				var propObject = {
+					configurable: true
+				};
+				if (typeof(_set) == 'function') propObject['set'] = _set;
+				if (typeof(_get) == 'function') propObject['get'] = _get;
+
+				Object.defineProperty(object, prop, propObject);
 			} else {
 
 				if (typeof(_set) == 'function') object.__defineSetter__(prop, _set);
@@ -28,10 +31,18 @@ var EUCookieLaw = (function (doc) {
 		instance = null,
 		cookieRejected = false,
 		askForCookie = null,
-		defaultMessage = '';
+		showBanner = false,
+		defaultTitle = '',
+		disagreeLabel = '',
+		agreeLabel = '',
+		defaultMessage = '',
+		reloadAfterAgree = false,
+		theBannerId = '',
+		body;
+
 
 	return function EUCookieLaw(options) {
-		if (/__eucookielaw=true/.test(document.cookie)) return instance;
+		if (/__eucookielaw=true/.test(doc.cookie)) return instance;
 		if (instance instanceof EUCookieLaw) return instance;
 
 		instance = this;
@@ -40,13 +51,19 @@ var EUCookieLaw = (function (doc) {
 			cookieEnabled = true;
 			cookieRejected = false;
 			if (!isOriginal) {
-				delete document.cookie;
+				delete doc.cookie;
 				isOriginal = true;
 			}
-			document.cookie = "__eucookielaw=true";
+			doc.cookie = "__eucookielaw=true";
+			removeBanner();
+
+			if(reloadAfterAgree) window.location.reload();
+
 		};
 		this.reject = function () {
 			cookieRejected = true;
+			removeBanner();
+
 		};
 		this.isRejected = function () {
 			return cookieRejected;
@@ -54,29 +71,74 @@ var EUCookieLaw = (function (doc) {
 		this.isCookieEnabled = function () {
 			return cookieEnabled;
 		};
-		defaultMessage = options.message || 'La legge europea sulla privacy e la conservazione dei cookie richiede il tuo consenso prima di conservare i cookie. Me lo consenti?';
 
+		var buildBanner = function () {
+			body = doc.body;
+			if(theBannerId!='' && doc.getElementById(theBannerId)){
+
+			}else {
+
+				var theDiv = doc.createElement("div");
+				theBannerId = 'eucookielaw-' + parseInt(Math.random() * 200);
+				theDiv.setAttribute('id', theBannerId);
+				theDiv.className = "eucookielaw-banner";
+				theDiv.innerHTML =  '<div class="well">' +
+					'<h1 class="banner-title">' + defaultTitle + '</h1>' +
+					'<p class="banner-message">' + defaultMessage + '</p>' +
+					'<p class="banner-agreement-buttons">' +
+						'<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">' + disagreeLabel + '</a>' +
+						'<a href="#" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies();">' + agreeLabel + '</a>'+
+					'</p>' +
+				'</div>';
+				var firstNode = body.childNodes[0];
+				body.insertBefore(theDiv, firstNode);
+			}
+		},
+		removeBanner = function(){
+			if(theBannerId!=''){
+				body.removeChild( doc.getElementById(theBannerId) );
+				theBannerId = '';
+			}
+		};
+
+		defaultMessage = options.message || 'La legge europea sulla privacy e la conservazione dei cookie richiede il tuo consenso prima di conservare i cookie. Me lo consenti?';
+		reloadAfterAgree = options.reload;
 		askForCookie = typeof(options.showAgreement) == 'function' ? options.showAgreement : function () {
-			if (!instance.isRejected() && confirm(options.message)) {
-				instance.enableCookies();
-			} else {
-				cookieRejected = true;
+			if(showBanner) {
+				buildBanner();
+			}else {
+				if (!instance.isRejected() && confirm(options.message)) {
+					instance.enableCookies();
+				} else {
+					cookieRejected = true;
+				}
 			}
 			return instance.isCookieEnabled();
 		};
 
-		setProperty(document, 'cookie', function (cookie) {
+		showBanner = options.showBanner;
+		if(showBanner && options.bannerTitle){
+			defaultTitle = options.bannerTitle;
+			disagreeLabel = options.disagreeLabel || "Disagree";
+			agreeLabel = options.agreeLabel || "Agree";
+
+			window.addEventListener('load', buildBanner);
+		}
+
+		isOriginal = false;
+		setProperty(doc, 'cookie', function (cookie) {
+			body = doc.body;
 			if (!cookieEnabled) {
 				if (askForCookie()) {
 					instance.enableCookies();
-					document.cookie = cookie;
+					doc.cookie = cookie;
 				}
 				return false;
 			} else {
-				document.cooke = cookie;
+				delete doc.cookie;
+				doc.cooke = cookie;
 			}
 			return cookie;
 		}, null);
-		isOriginal = false;
 	};
 })(document);
