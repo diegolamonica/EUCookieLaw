@@ -11,7 +11,7 @@
 In this context this class lives.
 It simply alters the default `document.cookie` behavior to disallow cookies to be written on the client side, until the user accept the agreement.
 
-## How to use
+# How to use
 
 ## Client side
 
