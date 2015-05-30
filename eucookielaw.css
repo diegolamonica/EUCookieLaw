@@ -6,8 +6,18 @@
     font-family: "Arial";
     background-color: #444;
     color: #fff;
+    z-index: 99999;
 }
-
+body.admin-bar .eucookielaw-banner{
+    top: 32px;
+}
+.eucookielaw-banner a {
+    color: #fff;
+    text-decoration: underline;
+}
+.eucookielaw-banner a:hover{
+    color: #ff0;
+}
 .eucookielaw-banner .well {
     border: 1px solid #ccc;
     display: block;

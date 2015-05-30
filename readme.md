@@ -155,6 +155,35 @@ starts always with `eucookielaw-` and then followed by a number between `0` and 
 You can make your own CSS to build a custom aspect for the banner. 
 However, if you prefer, you can start from the bundled CSS.  
 
+## Using EUCookieLaw into WordPress
+Just download the zip and install it in your WordPress.
+The plugin actually supports translation in both Italian (by translation file) and English (default). 
+
+### How to make the banner title and message translate in the proper language.
+
+I've implemented the custom textdomain files ( `EUCookieLawCustom-it_IT.po` / `EUCookieLawCustom-it_IT.po` ).  
+Remember that to get custom translations properly work, **you need to move the `EUCookieLawCustom` directory at the `plugins` directory level**.
+ 
+Then take the file default and you have to put 4 strings in your translation file:
+
+* `Banner title`
+* `Banner description`
+* `I agree`
+* `I disagree`
+
+Remember to put the above text in the plugin settings page (default behavior) and to produce the translation files (starting from the `default.po` located in the `EUCookieLawCustom` directory).
+
+### Create a detailed policy privacy page
+
+To ensure your site is law compliant, you should have a page where you describe to your user which are the tird party cookies, which is their purpose and how to disable them.
+And yes! Don't forget to put the link in the banner!
+
+# Contribute
+
+I'd like to translate this plugin in all european languages, but I'm limited to the Italian and English languages. 
+
+If you want to get involved in this plugin developement, then fork the repository and  translate in your language.
+
 # Donations
 If you find this script useful, and since I've noticed that nobody did this script before of me, 
 I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest).   :)

@@ -1,0 +1,94 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: EUCookieLaw\n"
+"POT-Creation-Date: 2015-05-30 15:22+0100\n"
+"PO-Revision-Date: 2015-05-30 15:23+0100\n"
+"Last-Translator: Diego La Monica <diego.lamonica@gmail.com>\n"
+"Language-Team: Diego La Monica <diego.lamonica@gmail.com>\n"
+"Language: it_IT\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop;_e;__\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: /home/diego/sviluppo/php/wp/wp-content/plugins/"
+"EUCookieLaw\n"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:58
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:234
+msgid "The banner title"
+msgstr "Titolo del banner"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:60
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:236
+msgid "I agree"
+msgstr "Sono d'accordo"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:61
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:237
+msgid "I disagree"
+msgstr "Non sono d'accordo"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:94
+msgid "About EUCookieLaw"
+msgstr "Informazioni su EUCookieLaw"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:101
+msgid "CSS Cookie Banner Customization"
+msgstr "Personalizzazione CSS del Banner dei cookie"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:107
+msgid "Donation"
+msgstr "Donazione"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:198
+#, php-format
+msgid ""
+"If you find this plugin useful, and since I've noticed that nobody did this "
+"script (as is) before of me, I'd like to receive <a href=\"%s\">a donation</"
+"a> as thankful for the time You've earned for you, your family and your "
+"hobbies! :)"
+msgstr ""
+"Se hai trovato questo plugin utile, e poichè ho visto che nessun altro ha "
+"sviluppato uno script come questo (che blocca i cookie) prima di me, mi "
+"farebbe piacere ricevere <a href=\"%s\">una donazione</a> come segno di "
+"ringraziamento per il tempo che tu hai guadagnato per te, per la tua "
+"famiglia e per i tuoi hobby! :)"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:202
+msgid ""
+"You can find further informations about this plugin on <a href=\"https://"
+"github.com/diegolamonica/EUCookieLaw/\">GitHub</a>"
+msgstr ""
+"Puoi trovare ulteriori informazioni su questo plugin su  <a href=\"https://"
+"github.com/diegolamonica/EUCookieLaw/\">GitHub</a>"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:212
+msgid "EUCookieLaw messages"
+msgstr "Messaggio di EUCookieLaw"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:218
+msgid "Support"
+msgstr "Supporto"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:242
+msgid "Banner Title"
+msgstr "Titolo del banner"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:246
+msgid "Banner Description"
+msgstr "Descrizione del banner"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:250
+msgid "Banner Agree button"
+msgstr "Etichetta pulsante di autorizzazione"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:254
+msgid "Banner Disagree button"
+msgstr "Etichetta pulsante di rifiuto"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:268
+msgid "In the <code>Banner description</code> field you can write HTML."
+msgstr "Nel campo <code>Descrizione del banner</code>  puoi scrivere l'HTML."
