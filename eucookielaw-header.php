@@ -25,8 +25,8 @@ function euCookieLaw_callback($buffer){
 
 	    }
 
-	    !defined('EUCOOKIELAW_DISALLOWED_DOMAINS') && define('EUCOOKIELAW_DISALLOWED_DOMAINS', '');
-
+	    !defined('EUCOOKIELAW_DISALLOWED_DOMAINS')  && define('EUCOOKIELAW_DISALLOWED_DOMAINS', '');
+	    !defined('EUCOOKIELAW_LOOK_IN_SCRIPTS')     && define('EUCOOKIELAW_LOOK_IN_SCRIPTS', false);
 
 	    if(EUCOOKIELAW_DISALLOWED_DOMAINS!='') {
 
@@ -41,8 +41,8 @@ function euCookieLaw_callback($buffer){
 				    // Non empty tags (eg. <iframe>...</iframe>)
 				    $multiLineTagRegExp = '#<(' . EUCOOKIELAW_LOOK_IN_TAGS . ')\W[^>]*(href|src)=("|\')(http(s)?:)?//' . preg_quote( $disallowedDomain, "#" ) . '.*?(\\3)[^>]*>.*?</\\1>#ms';
 				    if ( preg_match( $multiLineTagRegExp, $buffer, $items ) ) {
-
-					    $buffer = str_replace( $items[0], '', $buffer );
+					    $replaced = str_replace($items[4] . '//' . $disallowedDomain, 'about:blank', $items[0]);
+					    $buffer = str_replace( $items[0], $replaced, $buffer );
 
 				    }
 
@@ -51,9 +51,29 @@ function euCookieLaw_callback($buffer){
 				    if ( preg_match( $singleLineTagRegExp, $buffer, $items ) ) {
 					    $buffer = str_replace( $items[0], '', $buffer );
 				    }
+
+				    if(EUCOOKIELAW_LOOK_IN_SCRIPTS){
+
+					    $pattern = "#<script[^>]*>(.*?)</script>#ims";
+					    if(preg_match_all($pattern, $buffer, $matches)){
+
+						    foreach($matches[1] as $index => $match){
+
+							    if(strpos($match, $disallowedDomain)!==false){
+								    $buffer = str_replace($match, "<![CDATA[\n//Removed by EUCookieLaw\n]]>", $buffer );
+							    }
+						    }
+
+					    }
+
+				    }
 			    }
+
+
 		    }
 	    }
+
+
     }
 
 

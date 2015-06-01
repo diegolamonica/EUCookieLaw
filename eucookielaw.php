@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/diegolamonica/EUCookieLaw
  * Description: A simple WP solution to the European Cookie Law Issue
  * Author: Diego La Monica
- * Version: 1.1
+ * Version: 1.2
  * Author URI: http://diegolamonica.info
  * Text Domain: EUCookieLaw
  * Domain Path: /languages
@@ -17,7 +17,7 @@ Class EUCookieLaw{
 	const TEXTDOMAIN        = 'EUCookieLaw';
 	const CUSTOMDOMAIN      = 'EUCookieLawCustom';
 	const MENU_SLUG	        = 'EUCookieLaw';
-	const VERSION           = '1.1';
+	const VERSION           = '1.2';
 	const CSS               = 'EUCookieLaw_css';
 	const JS                = 'EUCookieLaw_js';
 	const WPJS              = 'wpEUCookieLaw_js';
@@ -29,6 +29,7 @@ Class EUCookieLaw{
 
 	const OPT_TITLE_TAG     = 'eucookie_law_title_tag';
 	const OPT_3RDPDOMAINS   = 'eucookie_law_3rdparty_domain';
+	const OPT_LOOKINSCRIPTS = 'eucookie_law_inscript';
 	const OPT_LOOKINTAGS    = 'eucookie_law_lookintags';
 
 	const OPT_DEFAULT_LOOKINTAGS = 'script|iframe|img';
@@ -59,10 +60,12 @@ Class EUCookieLaw{
 		}
 		$disalloweddDomains = get_option(self::OPT_3RDPDOMAINS);
 		$lookInTags         = get_option(self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS);
+		$lookInScripts      = get_option(self::OPT_LOOKINSCRIPTS, 'n');
 
 		define('EUCOOKIELAW_DISALLOWED_DOMAINS',    preg_replace("#\r#", "\n", $disalloweddDomains) );
 		define('EUCOOKIELAW_LOOK_IN_TAGS',          $lookInTags);
 
+		define('EUCOOKIELAW_LOOK_IN_SCRIPTS',       $lookInScripts == 'y');
 		require $this->PLUGIN_DIRECTORY . '/eucookielaw-header.php';
 	}
 
@@ -82,6 +85,7 @@ Class EUCookieLaw{
 		$bannerAgree    = get_option(self::OPT_AGREE, 'I agree');
 		$bannerDisagree = get_option(self::OPT_DISAGREE, 'I disagree') ;
 		$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
+
 		// Localize the script with new data
 		$configuration = array(
 			'showBanner'    => true,
@@ -259,6 +263,7 @@ Class EUCookieLaw{
 			update_option(self::OPT_3RDPDOMAINS, $_POST['blocked_domains']);
 			update_option(self::OPT_LOOKINTAGS, $_POST['look_in_tags']);
 			update_option(self::OPT_TITLE_TAG, $_POST['tag']);
+			update_option(self::OPT_LOOKINSCRIPTS, $_POST['in_script']);
 		}
 
 		$bannerTitle    = get_option(self::OPT_TITLE, 'Banner title');
@@ -268,6 +273,7 @@ Class EUCookieLaw{
 		$blockedDomains = get_option(self::OPT_3RDPDOMAINS, '');
 		$lookInTags     = get_option(self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS);
 		$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
+		$lookInScripts  = get_option(self::OPT_LOOKINSCRIPTS, 'n');
 
 		?>
 		<table class="form-table">
@@ -299,6 +305,20 @@ Class EUCookieLaw{
 			<tr>
 				<th scope="row"><label for="look_in_tags"><?php _e("Search domain only in this tags", self::TEXTDOMAIN); ?></label></th>
 				<td><input name="look_in_tags" type="text" id="look_in_tags" value="<?php echo htmlspecialchars($lookInTags); ?>" class="regular-text"></td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e("Look url in <code>script</code> source", self::TEXTDOMAIN); ?></label></th>
+				<td>
+					<label>
+						<input type="radio" value="y" name="in_script" <?php echo ($lookInScripts=='y')?'checked="checked"':''; ?> />
+						<?php _e('Yes', self::TEXTDOMAIN); ?>
+					</label><br />
+
+					<label>
+						<input type="radio" value="n" name="in_script" <?php echo ($lookInScripts=='n')?'checked="checked"':''; ?> />
+						<?php _e('No', self::TEXTDOMAIN); ?>
+					</label>
+				</td>
 			</tr>
 
 		</table>

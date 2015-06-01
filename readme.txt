@@ -36,6 +36,15 @@ in a local directory then upload the whole directory under `/wp-content/plugins/
 
 == Changelog ==
 
+= 1.2 =
+
+* Updated the eucookielaw-header.php,
+  * **NEW:** now the search of url is performed in `<script>...</script>` tags too.
+  * **BUGFIX:** some translations strings were broken.
+* updated translation files
+* updated documentation
+* updated the version number
+
 = 1.1 =
 
 This update introduces several improvements, features and bugfixes. For a detailed information about the new release see:

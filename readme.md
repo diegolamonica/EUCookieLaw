@@ -141,6 +141,7 @@ If you want to block specific domains you can define in your script (before incl
 * `EUCOOKIELAW_DISALLOWED_DOMAINS` a semicolon (`;`) separated list of domains disallowed since the user does not accept the agreement
 * `EUCOOKIELAW_LOOK_IN_TAGS` a pipe (`|`) separated list of tags where to search for the domains to block. 
   If not specified, the deafault tags are `iframe`. `script`, `link`.
+* `EUCOOKIELAW_LOOK_IN_SCRIPTS` a boolean value, if `true` the URLs defined in `EUCOOKIELAW_DISALLOWED_DOMAINS` will be searched in the `<script>...</script>` tags too.
 
 ## Using EUCookieLaw into WordPress
 Just download the zip and install it in your WordPress.
@@ -152,6 +153,8 @@ The plugin is compliant (also read as *has been tested*) with WP Super Cache plu
 
 I've implemented the custom text-domain files ( `EUCookieLawCustom-it_IT.po` / `EUCookieLawCustom-it_IT.po` ).  
 Remember that to get custom translations properly work, **you need to move the `EUCookieLawCustom` directory at the `plugins` directory level**.
+
+To be more clear the custom directory will be: **`wp-content/plugins/EUCookieLawCustom`**
  
 Then take the file default and you have to put 4 strings in your translation file:
 
@@ -160,7 +163,8 @@ Then take the file default and you have to put 4 strings in your translation fil
 * `I agree`
 * `I disagree`
 
-Remember to put the above text in the plugin settings page (default behavior) and to produce the translation files (starting from the `default.po` located in the `EUCookieLawCustom` directory).
+Remember to put the above text in the plugin settings page (default behavior) and to produce the translation files 
+(starting from the `default.po` located in the `EUCookieLawCustom` directory).
 
 You can see a production example on my [personal WebSite](http://diegolamonica.info).
 
@@ -216,6 +220,8 @@ I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_dona
 Here follows a list of sites that is using EUCookiesLaw Plugin:
 
 * [Diego La Monica . info](http://diegolamonica.info) (WP)
+* [Parking Paradise Siracusa](http://www.parkingparadise.it/) (WP)
+* [Clienti Valorlife](http://www.clienti-valorlife.it/) (WP)
 * Your site title - Your url - Type (`WP` or `JS`)
 
 **Note:** To add your site fork this repository, add your site and make a pull request... or simply send [me](mailto:diego.lamonica@gmail.com) a message. :)
