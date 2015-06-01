@@ -38,6 +38,7 @@ var EUCookieLaw = (function (doc) {
 		defaultMessage = '',
 		reloadAfterAgree = false,
 		theBannerId = '',
+		theTitleTag = '', // default is h1
 		body;
 
 
@@ -83,7 +84,7 @@ var EUCookieLaw = (function (doc) {
 				theDiv.setAttribute('id', theBannerId);
 				theDiv.className = "eucookielaw-banner";
 				theDiv.innerHTML =  '<div class="well">' +
-					'<h1 class="banner-title">' + defaultTitle + '</h1>' +
+					'<' + theTitleTag + ' class="banner-title">' + defaultTitle + '</' + theTitleTag + '>' +
 					'<p class="banner-message">' + defaultMessage + '</p>' +
 					'<p class="banner-agreement-buttons">' +
 						'<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">' + disagreeLabel + '</a>' +
@@ -100,7 +101,7 @@ var EUCookieLaw = (function (doc) {
 				theBannerId = '';
 			}
 		};
-
+		theTitleTag = options.tag || 'h1';
 		defaultMessage = options.message || 'La legge europea sulla privacy e la conservazione dei cookie richiede il tuo consenso prima di conservare i cookie. Me lo consenti?';
 		reloadAfterAgree = options.reload;
 		askForCookie = typeof(options.showAgreement) == 'function' ? options.showAgreement : function () {

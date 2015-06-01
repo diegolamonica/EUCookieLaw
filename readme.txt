@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 4.2.2
+Stable tag: 1.1
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -35,6 +35,23 @@ For manual installation just download the zip file then upload via the WordPress
 in a local directory then upload the whole directory under `/wp-content/plugins/`.
 
 == Changelog ==
+
+= 1.1 =
+
+This update introduces several improvements, features and bugfixes. For a detailed information about the new release see:
+[Issue #1](https://github.com/diegolamonica/EUCookieLaw/issues/1)
+
+* updated the eucookielaw-header.php,
+  * **NEW:** now it blocks script tags with `data-eucookielaw="block"` attribute
+  * **NEW:** now is possible to define a blacklist of domains to block before the user consent the agreement
+  * **NEW:** the blacklist is related to a set of tags (by default the plugin will scan `iframe`, `link` and `script` tags
+* **NEW::** managed title tag, blocked domains and tags to scan
+* **NEW:** if the plugin WP Super Cache is installed then the plugin will clear the cache until the user has not approved the agreeement to ensure to show always the right contents
+* **NEW::** if there is a CSS file named `eucookielaw.css` in the custom directory `wp-content/plugins/EUCookieLawCustom/` the it will be appliead in place of the default one.
+* **BUGFIX:** unescaped post data before saving the admin settings
+* updated the version number
+* updated translation strings
+* updated documentation
 
 = 1.0 =
 * First release

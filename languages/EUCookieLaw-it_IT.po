@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: EUCookieLaw\n"
-"POT-Creation-Date: 2015-05-30 15:22+0100\n"
-"PO-Revision-Date: 2015-05-30 15:23+0100\n"
+"POT-Creation-Date: 2015-06-01 11:38+0100\n"
+"PO-Revision-Date: 2015-06-01 11:38+0100\n"
 "Last-Translator: Diego La Monica <diego.lamonica@gmail.com>\n"
 "Language-Team: Diego La Monica <diego.lamonica@gmail.com>\n"
 "Language: it_IT\n"
@@ -16,34 +16,19 @@ msgstr ""
 "X-Poedit-SearchPath-0: /home/diego/sviluppo/php/wp/wp-content/plugins/"
 "EUCookieLaw\n"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:58
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:234
-msgid "The banner title"
-msgstr "Titolo del banner"
-
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:60
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:236
-msgid "I agree"
-msgstr "Sono d'accordo"
-
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:61
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:237
-msgid "I disagree"
-msgstr "Non sono d'accordo"
-
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:94
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:117
 msgid "About EUCookieLaw"
 msgstr "Informazioni su EUCookieLaw"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:101
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:124
 msgid "CSS Cookie Banner Customization"
 msgstr "Personalizzazione CSS del Banner dei cookie"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:107
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:130
 msgid "Donation"
 msgstr "Donazione"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:198
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:222
 #, php-format
 msgid ""
 "If you find this plugin useful, and since I've noticed that nobody did this "
@@ -57,7 +42,7 @@ msgstr ""
 "ringraziamento per il tempo che tu hai guadagnato per te, per la tua "
 "famiglia e per i tuoi hobby! :)"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:202
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:228
 msgid ""
 "You can find further informations about this plugin on <a href=\"https://"
 "github.com/diegolamonica/EUCookieLaw/\">GitHub</a>"
@@ -65,30 +50,97 @@ msgstr ""
 "Puoi trovare ulteriori informazioni su questo plugin su  <a href=\"https://"
 "github.com/diegolamonica/EUCookieLaw/\">GitHub</a>"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:212
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:238
 msgid "EUCookieLaw messages"
 msgstr "Messaggio di EUCookieLaw"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:218
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:244
 msgid "Support"
 msgstr "Supporto"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:242
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:275
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:343
 msgid "Banner Title"
 msgstr "Titolo del banner"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:246
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:279
+msgid "HTML tag for Title"
+msgstr "Tag HTML per il Titolo"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:283
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:318
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:352
 msgid "Banner Description"
 msgstr "Descrizione del banner"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:250
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:287
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:360
 msgid "Banner Agree button"
 msgstr "Etichetta pulsante di autorizzazione"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:254
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:291
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:368
 msgid "Banner Disagree button"
 msgstr "Etichetta pulsante di rifiuto"
 
-#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:268
-msgid "In the <code>Banner description</code> field you can write HTML."
-msgstr "Nel campo <code>Descrizione del banner</code>  puoi scrivere l'HTML."
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:296
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:326
+msgid "Blocked domains"
+msgstr "Domini bloccati"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:300
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:335
+msgid "Search domain only in this tags"
+msgstr "Ricerca i domini solo in questi tag"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:317
+#, php-format
+msgid "In the <code>%s</code> field you can write HTML."
+msgstr "Nel campo <code>%s</code>  puoi scrivere del codice HTML. "
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:325
+#, php-format
+msgid ""
+"In the <code>%s</code> field you should type all the blocked domains "
+"separated by a newline or semicolon (<code>;</code>) without the protocol "
+"(eg. <code>www.google.it</code>,<code>placehold.it</code>"
+msgstr ""
+"Nel campo <code>%s</code> bisogna riportare tutti i domini bloccati separati "
+"da un ritorno a capo o da un punto e virgola (<code>;</code>) senza il "
+"protocollo (es.  <code>www.google.it</code>,<code>placehold.it</code>)"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:334
+#, php-format
+msgid ""
+"In the <code>%s</code> field you should report all the tags you want to look "
+"for the domain separated by a pipe (<code>|</code>)  (eg. <code>script|"
+"iframe|link</code>"
+msgstr ""
+"Nel campo <code>%s</code> bisogna riportare tutti i tag separati dal "
+"carattere pipe (<code>|</code>)  in cui cercare il dato di domino (eg. "
+"<code>script|iframe|link</code>)"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:339
+msgid "Multilingual support"
+msgstr "Supporto per il multilinga"
+
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:342
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:351
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:359
+#: /home/diego/sviluppo/php/wp/wp-content/plugins/EUCookieLaw/eucookielaw.php:367
+#, php-format
+msgid ""
+"If you set <code>%1$s</code> with value <code>%2$s</code> it will be "
+"acquired by the custom translation file."
+msgstr ""
+"Se imposti <code>%1$s</code> esso verrà acquisito dal file di traduzioni "
+"personalizzate."
+
+#~ msgid "The banner title"
+#~ msgstr "Titolo del banner"
+
+#~ msgid "I agree"
+#~ msgstr "Sono d'accordo"
+
+#~ msgid "I disagree"
+#~ msgstr "Non sono d'accordo"

@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/diegolamonica/EUCookieLaw
  * Description: A simple WP solution to the European Cookie Law Issue
  * Author: Diego La Monica
- * Version: 20150530
+ * Version: 1.1
  * Author URI: http://diegolamonica.info
  * Text Domain: EUCookieLaw
  * Domain Path: /languages
@@ -14,18 +14,24 @@ Class EUCookieLaw{
 
 	static $initialized = false;
 
-	const TEXTDOMAIN    = 'EUCookieLaw';
-	const CUSTOMDOMAIN  = 'EUCookieLawCustom';
-	const MENU_SLUG	    = 'EUCookieLaw';
-	const VERSION       = '20150530';
-	const CSS           = 'EUCookieLaw_css';
-	const JS            = 'EUCookieLaw_js';
-	const WPJS          = 'wpEUCookieLaw_js';
+	const TEXTDOMAIN        = 'EUCookieLaw';
+	const CUSTOMDOMAIN      = 'EUCookieLawCustom';
+	const MENU_SLUG	        = 'EUCookieLaw';
+	const VERSION           = '1.1';
+	const CSS               = 'EUCookieLaw_css';
+	const JS                = 'EUCookieLaw_js';
+	const WPJS              = 'wpEUCookieLaw_js';
 
-	const OPT_TITLE     = 'eucookie_law_title';
-	const OPT_MESSAGE   = 'eucookie_law_description';
-	const OPT_AGREE     = 'eucookie_law_agree';
-	const OPT_DISAGREE  = 'eucookie_law_disagree';
+	const OPT_TITLE         = 'eucookie_law_title';
+	const OPT_MESSAGE       = 'eucookie_law_description';
+	const OPT_AGREE         = 'eucookie_law_agree';
+	const OPT_DISAGREE      = 'eucookie_law_disagree';
+
+	const OPT_TITLE_TAG     = 'eucookie_law_title_tag';
+	const OPT_3RDPDOMAINS   = 'eucookie_law_3rdparty_domain';
+	const OPT_LOOKINTAGS    = 'eucookie_law_lookintags';
+
+	const OPT_DEFAULT_LOOKINTAGS = 'script|iframe|img';
 
 	private $PLUGIN_DIRECTORY;
 
@@ -42,27 +48,40 @@ Class EUCookieLaw{
 	}
 
 	public function loadTranslations(){
-		error_log('loading translations');
-		$locale = get_locale();
 
 		load_plugin_textdomain( __CLASS__, FALSE, basename( dirname( __FILE__ ) ) . '/languages/' );
 		load_plugin_textdomain( self::CUSTOMDOMAIN, FALSE, basename( dirname( __FILE__ ) ) .'Custom/' );
 	}
 
 	public function init(){
+		if( function_exists('wp_cache_clear_cache' ) && !isset($_COOKIE['__eucookielaw']) ){
+			wp_cache_clear_cache();
+		}
+		$disalloweddDomains = get_option(self::OPT_3RDPDOMAINS);
+		$lookInTags         = get_option(self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS);
+
+		define('EUCOOKIELAW_DISALLOWED_DOMAINS',    preg_replace("#\r#", "\n", $disalloweddDomains) );
+		define('EUCOOKIELAW_LOOK_IN_TAGS',          $lookInTags);
+
 		require $this->PLUGIN_DIRECTORY . '/eucookielaw-header.php';
 	}
 
 	public function script(){
 		wp_register_script(self::JS, plugins_url('/EUCookieLaw.js', __FILE__) , array(), self::VERSION, false);
 		wp_register_script(self::WPJS, plugins_url('/wpEUCookieLaw.js', __FILE__) , array(self::JS), self::VERSION, false);
-		wp_register_style(self::CSS, plugins_url('/eucookielaw.css', __FILE__), array(), self::VERSION, 'screen');
+
+		if(file_exists(dirname( __FILE__ ) .'Custom/eucookielaw.css' )){
+			wp_register_style(self::CSS, plugins_url('/eucookielaw.css', dirname( __FILE__ ).'Custom/eucookielaw.css'), array(), self::VERSION, 'screen');
+		}else{
+			wp_register_style(self::CSS, plugins_url('/eucookielaw.css', __FILE__), array(), self::VERSION, 'screen');
+		}
+
 
 		$bannerTitle    = get_option(self::OPT_TITLE, 'Banner title');
 		$bannerMessage  = get_option(self::OPT_MESSAGE, 'Banner message');
 		$bannerAgree    = get_option(self::OPT_AGREE, 'I agree');
 		$bannerDisagree = get_option(self::OPT_DISAGREE, 'I disagree') ;
-
+		$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
 		// Localize the script with new data
 		$configuration = array(
 			'showBanner'    => true,
@@ -70,7 +89,8 @@ Class EUCookieLaw{
 			'bannerTitle'   => __($bannerTitle, self::CUSTOMDOMAIN ),
 			'message'       => __($bannerMessage, self::CUSTOMDOMAIN),
 			'agreeLabel'    => __($bannerAgree, self::CUSTOMDOMAIN),
-			'disagreeLabel' => __($bannerDisagree, self::CUSTOMDOMAIN)
+			'disagreeLabel' => __($bannerDisagree, self::CUSTOMDOMAIN),
+			'tag'           => $titleTag
 		);
 		wp_localize_script(self::JS, 'euCookieLawConfig', $configuration );
 
@@ -120,7 +140,7 @@ Class EUCookieLaw{
 		add_screen_option('layout_columns', array('max' => 2, 'default' => 2) );
 		?>
 		<div class="wrap">
-			<h2>About EUCookieLaw</h2>
+			<h2>EUCookieLaw</h2>
 			<div id="poststuff">
 				<form name="post" method="post" novalidate="novalidate">
 					<div id="post-body" class="metabox-holder columns-<?php echo 1 == get_current_screen()->get_columns() ? '1' : '2'; ?>">
@@ -231,22 +251,33 @@ Class EUCookieLaw{
 	public function outputMessages(){
 
 		if(isset($_POST['nonce']) && wp_verify_nonce($_POST['nonce'], __CLASS__)){
+			$_POST = stripslashes_deep($_POST);
 			update_option(self::OPT_TITLE, $_POST['banner_title']);
 			update_option(self::OPT_MESSAGE, $_POST['banner_message']);
 			update_option(self::OPT_AGREE, $_POST['banner_agree']);
 			update_option(self::OPT_DISAGREE, $_POST['banner_disagree']);
-
+			update_option(self::OPT_3RDPDOMAINS, $_POST['blocked_domains']);
+			update_option(self::OPT_LOOKINTAGS, $_POST['look_in_tags']);
+			update_option(self::OPT_TITLE_TAG, $_POST['tag']);
 		}
+
 		$bannerTitle    = get_option(self::OPT_TITLE, 'Banner title');
 		$bannerMessage  = get_option(self::OPT_MESSAGE, 'Banner message');
 		$bannerAgree    = get_option(self::OPT_AGREE, 'I agree');
 		$bannerDisagree = get_option(self::OPT_DISAGREE, 'I disagree');
+		$blockedDomains = get_option(self::OPT_3RDPDOMAINS, '');
+		$lookInTags     = get_option(self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS);
+		$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
 
 		?>
 		<table class="form-table">
 			<tr>
 				<th scope="row"><label for="banner_title"><?php _e("Banner Title", self::TEXTDOMAIN); ?></label></th>
-				<td><input name="banner_title" type="text" id="banner_title" value="<?php echo $bannerTitle; ?>" class="regular-text"></td>
+				<td><input name="banner_title" type="text" id="banner_title" value="<?php echo htmlspecialchars($bannerTitle); ?>" class="regular-text"></td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="tag"><?php _e("HTML tag for Title", self::TEXTDOMAIN); ?></label></th>
+				<td><input name="tag" type="text" id="tag" value="<?php echo htmlspecialchars($titleTag); ?>" class="regular-text"></td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="banner_message"><?php _e("Banner Description", self::TEXTDOMAIN); ?></label></th>
@@ -254,12 +285,22 @@ Class EUCookieLaw{
 			</tr>
 			<tr>
 				<th scope="row"><label for="banner_agree"><?php _e("Banner Agree button", self::TEXTDOMAIN); ?></label></th>
-				<td><input name="banner_agree" type="text" id="banner_agree" value="<?php echo $bannerAgree; ?>" class="regular-text"></td>
+				<td><input name="banner_agree" type="text" id="banner_agree" value="<?php echo htmlspecialchars($bannerAgree); ?>" class="regular-text"></td>
 			</tr>
 			<tr>
 				<th scope="row"><label for="banner_disagree"><?php _e("Banner Disagree button", self::TEXTDOMAIN); ?></label></th>
-				<td><input name="banner_disagree" type="text" id="banner_disagree" value="<?php echo $bannerDisagree; ?>" class="regular-text"></td>
+				<td><input name="banner_disagree" type="text" id="banner_disagree" value="<?php echo htmlspecialchars($bannerDisagree); ?>" class="regular-text"></td>
 			</tr>
+
+			<tr>
+				<th scope="row"><label for="blocked_domains"><?php _e("Blocked domains", self::TEXTDOMAIN); ?></label></th>
+				<td><textarea name="blocked_domains" id="blocked_domains" cols="30" rows="5" class="large-text"><?php echo htmlspecialchars( $blockedDomains ); ?></textarea>
+			</tr>
+			<tr>
+				<th scope="row"><label for="look_in_tags"><?php _e("Search domain only in this tags", self::TEXTDOMAIN); ?></label></th>
+				<td><input name="look_in_tags" type="text" id="look_in_tags" value="<?php echo htmlspecialchars($lookInTags); ?>" class="regular-text"></td>
+			</tr>
+
 		</table>
 		<p>
 			<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(__CLASS__); ?>" />
@@ -271,8 +312,65 @@ Class EUCookieLaw{
 	public function outputMessagesSupport(){
 		?>
 		<p>
-			<?php _e("In the <code>Banner description</code> field you can write HTML.", self::TEXTDOMAIN); ?>
+			<?php
+			echo sprintf(
+				__("In the <code>%s</code> field you can write HTML.", self::TEXTDOMAIN),
+				__('Banner Description', self::TEXTDOMAIN)
+			);
+			?>
 		</p>
+		<p>
+			<?php
+			echo sprintf(
+				__("In the <code>%s</code> field you should type all the blocked domains separated by a newline or semicolon (<code>;</code>) without the protocol (eg. <code>www.google.it</code>,<code>placehold.it</code>", self::TEXTDOMAIN),
+				__("Blocked domains", self::TEXTDOMAIN)
+			);
+			?>
+		</p>
+
+		<p>
+			<?php
+			echo sprintf(
+				__("In the <code>%s</code> field you should report all the tags you want to look for the domain separated by a pipe (<code>|</code>)  (eg. <code>script|iframe|link</code>", self::TEXTDOMAIN),
+				__("Search domain only in this tags", self::TEXTDOMAIN)
+			);
+			?>
+		</p>
+		<h4><?php _e("Multilingual support", self::TEXTDOMAIN); ?></h4>
+		<p>
+			<?php echo sprintf(
+				__('If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN),
+				__("Banner Title", self::TEXTDOMAIN),
+				"Banner title");
+			?>
+
+		</p>
+
+		<p>
+			<?php echo sprintf(
+				__('If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN),
+				__("Banner Description", self::TEXTDOMAIN),
+				"Banner message");
+			?>
+		</p>
+
+		<p>
+			<?php echo sprintf(
+				__('If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN),
+				__("Banner Agree button", self::TEXTDOMAIN),
+				"I agree");
+			?>
+		</p>
+
+		<p>
+			<?php echo sprintf(
+				__('If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN),
+				__("Banner Disagree button", self::TEXTDOMAIN),
+				"I disagree");
+			?>
+		</p>
+
+
 	<?php
 	}
 }

@@ -12,15 +12,52 @@
 
 function euCookieLaw_callback($buffer){
     if(!isset($_COOKIE['__eucookielaw'])) {
-        $headers = headers_list();
-        foreach($headers as $header){
-            if(preg_match("#^Set-Cookie:#", $header)) {
-                header('Set-Cookie:');
-                break;
-            }
-        }
+	    $headers = headers_list();
+	    foreach ( $headers as $header ) {
+		    if ( preg_match( "#^Set-Cookie:#", $header ) ) {
+			    header( 'Set-Cookie:' );
+			    break;
+		    }
+	    }
+
+	    if ( preg_match( '#<script\W[^>]*(data-eucookielaw="block")[^>]*>.*?</script>#ms', $buffer, $items ) ) {
+		    $buffer = str_replace( $items[0], '', $buffer );
+
+	    }
+
+	    !defined('EUCOOKIELAW_DISALLOWED_DOMAINS') && define('EUCOOKIELAW_DISALLOWED_DOMAINS', '');
+
+
+	    if(EUCOOKIELAW_DISALLOWED_DOMAINS!='') {
+
+		    ! defined( 'EUCOOKIELAW_LOOK_IN_TAGS' ) && define( 'EUCOOKIELAW_LOOK_IN_TAGS', 'iframe|srcript|link' );
+
+		    $disallowedDomains = preg_split( "#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS );
+
+		    foreach ( $disallowedDomains as $disallowedDomain ) {
+
+			    if ( !empty($disallowedDomain) ) {
+
+				    // Non empty tags (eg. <iframe>...</iframe>)
+				    $multiLineTagRegExp = '#<(' . EUCOOKIELAW_LOOK_IN_TAGS . ')\W[^>]*(href|src)=("|\')(http(s)?:)?//' . preg_quote( $disallowedDomain, "#" ) . '.*?(\\3)[^>]*>.*?</\\1>#ms';
+				    if ( preg_match( $multiLineTagRegExp, $buffer, $items ) ) {
+
+					    $buffer = str_replace( $items[0], '', $buffer );
+
+				    }
+
+				    // Empty tags ( eg. <link href="..." />)
+				    $singleLineTagRegExp = '#<(' . EUCOOKIELAW_LOOK_IN_TAGS . ')\W[^>]*(href|src)=("|\')(http(s)?:)?//' . preg_quote( $disallowedDomain, "#"  ) . '.*?("|\').*?/>#ms';
+				    if ( preg_match( $singleLineTagRegExp, $buffer, $items ) ) {
+					    $buffer = str_replace( $items[0], '', $buffer );
+				    }
+			    }
+		    }
+	    }
     }
+
+
     return $buffer;
 }
 
-ob_start("euCookieLaw_callback",2);
+ob_start("euCookieLaw_callback");
