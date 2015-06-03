@@ -36,6 +36,12 @@ in a local directory then upload the whole directory under `/wp-content/plugins/
 
 == Changelog ==
 
+= 1.3.1 =
+* **BUGFIX:** the default text for disagree button when not given was `Disagree` instead it should be empty.
+* **BUGFIX:** whatever is the name of the plugin directory the directory for the customizations (translations and CSS) must be `/wp-content/plugins/EUCookieLawCustom/`.
+* updated documentation
+* updated the version number
+
 = 1.3 =
 
 * Updated the eucookielaw-header.php,

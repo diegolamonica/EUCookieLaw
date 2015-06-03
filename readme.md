@@ -42,7 +42,7 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
 * `showBanner` (`boolean`)if you want to show a banner at the top of your page you need to set tis option to `true`. 
 * `bannerTitle` (only if `showBanner` is `true`) the banner title
 * `agreeLabel` (only if `showBanner` is `true`) the agree button label. Default is `I agree`
-* `disagreeLabel` (only if `showBanner` is `true`) the disagreement button label. Default is `Disagree`
+* `disagreeLabel` (only if `showBanner` is `true`) the disagreement button label. Default is an empty string. If not given the disagree button will not be shown.
 * `reload` if `true` the page will be refreshed after the user accepts the agreement. This is useful is used in 
   conjunction with the server side part.
 * `tag` (only if `showBanner` is `true`) if defined the script will use it as predefined tag for title content of the banner.

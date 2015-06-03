@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/diegolamonica/EUCookieLaw
  * Description: A simple WP solution to the European Cookie Law Issue
  * Author: Diego La Monica
- * Version: 1.3
+ * Version: 1.3.1
  * Author URI: http://diegolamonica.info
  * Text Domain: EUCookieLaw
  * Domain Path: /languages
@@ -17,7 +17,7 @@ Class EUCookieLaw{
 	const TEXTDOMAIN        = 'EUCookieLaw';
 	const CUSTOMDOMAIN      = 'EUCookieLawCustom';
 	const MENU_SLUG	        = 'EUCookieLaw';
-	const VERSION           = '1.3';
+	const VERSION           = '1.3.1';
 	const CSS               = 'EUCookieLaw_css';
 	const JS                = 'EUCookieLaw_js';
 	const WPJS              = 'wpEUCookieLaw_js';
@@ -51,7 +51,7 @@ Class EUCookieLaw{
 	public function loadTranslations(){
 
 		load_plugin_textdomain( __CLASS__, FALSE, basename( dirname( __FILE__ ) ) . '/languages/' );
-		load_plugin_textdomain( self::CUSTOMDOMAIN, FALSE, basename( dirname( __FILE__ ) ) .'Custom/' );
+		load_plugin_textdomain( self::CUSTOMDOMAIN, FALSE, basename(basename( dirname( __FILE__ ) )) .'EUCookieLawCustom/' );
 	}
 
 	public function init(){
