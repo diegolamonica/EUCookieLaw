@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 1.1
+Stable tag: 1.3
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -35,6 +35,15 @@ For manual installation just download the zip file then upload via the WordPress
 in a local directory then upload the whole directory under `/wp-content/plugins/`.
 
 == Changelog ==
+
+= 1.3 =
+
+* Updated the eucookielaw-header.php,
+  * **NEW:** now the disallowed domains trims the spaces on each domain. It means that is allowed to write `domain1.com ; domain2.com` and they will be correctly interpreted as `domain1.com` and `domain2.com`
+* **NEW:** If not defined the disagee label text then the button is not shown. Useful for informative non-restrictive cookie policy.
+* **BUGFIX:** the cookie `__eucookielaw` setted by javascript is defined at root domain level.
+* updated documentation
+* updated the version number
 
 = 1.2 =
 

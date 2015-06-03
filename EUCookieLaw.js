@@ -55,7 +55,8 @@ var EUCookieLaw = (function (doc) {
 				delete doc.cookie;
 				isOriginal = true;
 			}
-			doc.cookie = "__eucookielaw=true";
+			doc.cookie = "__eucookielaw=true"
+						+ ";domain=" + window.location.host + ";path=/";
 			removeBanner();
 
 			if(reloadAfterAgree) window.location.reload();
@@ -87,7 +88,7 @@ var EUCookieLaw = (function (doc) {
 					'<' + theTitleTag + ' class="banner-title">' + defaultTitle + '</' + theTitleTag + '>' +
 					'<p class="banner-message">' + defaultMessage + '</p>' +
 					'<p class="banner-agreement-buttons">' +
-						'<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">' + disagreeLabel + '</a>' +
+						((disagreeLabel!= '') ? '<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">' + disagreeLabel + '</a>' : '') +
 						'<a href="#" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies();">' + agreeLabel + '</a>'+
 					'</p>' +
 				'</div>';

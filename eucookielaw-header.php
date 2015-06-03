@@ -35,7 +35,7 @@ function euCookieLaw_callback($buffer){
 		    $disallowedDomains = preg_split( "#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS );
 
 		    foreach ( $disallowedDomains as $disallowedDomain ) {
-
+			    $disallowedDomain = trim($disallowedDomain);
 			    if ( !empty($disallowedDomain) ) {
 
 				    // Non empty tags (eg. <iframe>...</iframe>)

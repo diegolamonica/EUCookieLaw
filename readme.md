@@ -138,7 +138,8 @@ Further if you want to block some javascript elements you can do it by adding a 
 ### Block specific domain
 If you want to block specific domains you can define in your script (before including `eucookielaw-header.php`) two constants:
 
-* `EUCOOKIELAW_DISALLOWED_DOMAINS` a semicolon (`;`) separated list of domains disallowed since the user does not accept the agreement
+* `EUCOOKIELAW_DISALLOWED_DOMAINS` a semicolon (`;`) separated list of URLs disallowed since the user does not accept the agreement.
+  Each space before and/or after each URL will be removed.
 * `EUCOOKIELAW_LOOK_IN_TAGS` a pipe (`|`) separated list of tags where to search for the domains to block. 
   If not specified, the deafault tags are `iframe`. `script`, `link`.
 * `EUCOOKIELAW_LOOK_IN_SCRIPTS` a boolean value, if `true` the URLs defined in `EUCOOKIELAW_DISALLOWED_DOMAINS` will be searched in the `<script>...</script>` tags too.
