@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 1.4
+Stable tag: 1.4.1
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -35,6 +35,10 @@ For manual installation just download the zip file then upload via the WordPress
 in a local directory then upload the whole directory under `/wp-content/plugins/`.
 
 == Changelog ==
+
+= 1.4.1 =
+* **BUGFIX:** fixed the javascript that has wrong characters in the script
+* Fixed errors in documentation
 
 = 1.4 =
 * **NEW:** when you specify a domain starting with a dot (eg. `.google.com`) all the subdomains are valid (eg. `www.google.com` and `sub.domain.google.com`)
@@ -92,5 +96,5 @@ This update introduces several improvements, features and bugfixes. For a detail
 
 == FAQ ==
 
-* How can I customize the banner style?
-  Please visit the (official documentation page on GitHub)[https://github.com/diegolamonica/EUCookieLaw]
+* **How can I customize the banner style?**
+  Please visit the [official documentation page on GitHub](https://github.com/diegolamonica/EUCookieLaw)

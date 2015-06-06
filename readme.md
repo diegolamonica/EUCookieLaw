@@ -224,6 +224,9 @@ I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_dona
 
 # Changelog
 
+## 1.4.1
+* **BUGFIX:** fixed the javascript that has wrong characters in the script
+
 ## 1.4
 * **NEW:** when you specify a domain starting with a dot (eg. `.google.com`) all the subdomains are valid (eg. `www.google.com` and `sub.domain.google.com`)
 * **NEW:** Improved the banner loading (loaded before the DOM Event `load`)
