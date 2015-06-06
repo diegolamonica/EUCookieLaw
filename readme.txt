@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 1.3
+Stable tag: 1.4
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -36,6 +36,19 @@ in a local directory then upload the whole directory under `/wp-content/plugins/
 
 == Changelog ==
 
+= 1.4 =
+* **NEW:** when you specify a domain starting with a dot (eg. `.google.com`) all the subdomains are valid (eg. `www.google.com` and `sub.domain.google.com`)
+* **NEW:** Improved the banner loading (loaded before the DOM Event `load`)
+* **NEW:** Optional implicit user agree on page scrolling ([Issue #4](https://github.com/diegolamonica/EUCookieLaw/issues/4)).
+* **NEW:** Debugging options
+* **NEW:** You can fix the banner on top or bottom of the page.
+* **NEW:** The custom CSS (from `EUCookieLawCustom`) will be loaded in conjunction with the default CSS.
+* **BUGFIX:** removed the `<![CDATA[ ... ]]>` envelop on script replacement due to some browser incompatibility.
+* **BUGFIX:** Custom translations was never read
+* updated translation files
+* updated documentation
+* updated the version number
+
 = 1.3.1 =
 * **BUGFIX:** the default text for disagree button when not given was `Disagree` instead it should be empty.
 * **BUGFIX:** whatever is the name of the plugin directory the directory for the customizations (translations and CSS) must be `/wp-content/plugins/EUCookieLawCustom/`.
@@ -43,7 +56,6 @@ in a local directory then upload the whole directory under `/wp-content/plugins/
 * updated the version number
 
 = 1.3 =
-
 * Updated the eucookielaw-header.php,
   * **NEW:** now the disallowed domains trims the spaces on each domain. It means that is allowed to write `domain1.com ; domain2.com` and they will be correctly interpreted as `domain1.com` and `domain2.com`
 * **NEW:** If not defined the disagee label text then the button is not shown. Useful for informative non-restrictive cookie policy.
@@ -52,7 +64,6 @@ in a local directory then upload the whole directory under `/wp-content/plugins/
 * updated the version number
 
 = 1.2 =
-
 * Updated the eucookielaw-header.php,
   * **NEW:** now the search of url is performed in `<script>...</script>` tags too.
   * **BUGFIX:** some translations strings were broken.
@@ -61,7 +72,6 @@ in a local directory then upload the whole directory under `/wp-content/plugins/
 * updated the version number
 
 = 1.1 =
-
 This update introduces several improvements, features and bugfixes. For a detailed information about the new release see:
 [Issue #1](https://github.com/diegolamonica/EUCookieLaw/issues/1)
 
@@ -79,3 +89,8 @@ This update introduces several improvements, features and bugfixes. For a detail
 
 = 1.0 =
 * First release
+
+== FAQ ==
+
+* How can I customize the banner style?
+  Please visit the (official documentation page on GitHub)[https://github.com/diegolamonica/EUCookieLaw]

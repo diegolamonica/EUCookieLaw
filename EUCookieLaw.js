@@ -1,3 +1,4 @@
+MRRLSU73P42L259E
 /**
  * EUCookieLaw: simple object to accomplish european law requirements about cookie transmission to clients
  * @class EUCookieLaw
@@ -27,6 +28,7 @@ var EUCookieLaw = (function (doc) {
 			}
 		},
 		cookieEnabled = false,
+		onScroll = false,
 		isOriginal = true,
 		instance = null,
 		cookieRejected = false,
@@ -39,6 +41,7 @@ var EUCookieLaw = (function (doc) {
 		reloadAfterAgree = false,
 		theBannerId = '',
 		theTitleTag = '', // default is h1
+		fixOn = '', // default is 'top'
 		body;
 
 
@@ -59,7 +62,7 @@ var EUCookieLaw = (function (doc) {
 						+ ";domain=" + window.location.host + ";path=/";
 			removeBanner();
 
-			if(reloadAfterAgree) window.location.reload();
+			if(reloadAfterAgree && !onScroll) window.location.reload();
 
 		};
 		this.reject = function () {
@@ -83,7 +86,7 @@ var EUCookieLaw = (function (doc) {
 				var theDiv = doc.createElement("div");
 				theBannerId = 'eucookielaw-' + parseInt(Math.random() * 200);
 				theDiv.setAttribute('id', theBannerId);
-				theDiv.className = "eucookielaw-banner";
+				theDiv.className = "eucookielaw-banner fixedon-" + fixOn;
 				theDiv.innerHTML =  '<div class="well">' +
 					'<' + theTitleTag + ' class="banner-title">' + defaultTitle + '</' + theTitleTag + '>' +
 					'<p class="banner-message">' + defaultMessage + '</p>' +
@@ -119,12 +122,29 @@ var EUCookieLaw = (function (doc) {
 		};
 
 		showBanner = options.showBanner;
-		if(showBanner && options.bannerTitle){
+		if(showBanner && options.bannerTitle) {
 			defaultTitle = options.bannerTitle;
 			disagreeLabel = options.disagreeLabel || "";
 			agreeLabel = options.agreeLabel || "Agree";
+			onScroll = options.agreeOnScroll || false;
+			fixOn   = options.fixOn || 'top';
 
-			window.addEventListener('load', buildBanner);
+			var waitReady = function () {
+				if (document.readyState === 'complete') {
+					buildBanner();
+				} else {
+					setTimeout(waitReady, 100);
+				}
+			}
+
+			waitReady();
+			// window.addEventListener('load', buildBanner);
+			if (onScroll){
+				document.addEventListener('scroll', function () {
+					console.log("Scrolling");
+					instance.enableCookies();
+				});
+			}
 		}
 
 		isOriginal = false;

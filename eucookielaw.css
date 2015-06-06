@@ -1,16 +1,24 @@
 .eucookielaw-banner {
     position: fixed;
-    top: 0;
     left: 0;
     right: 0;
-    font-family: "Arial";
+    font-family: "Arial", serif;
     background-color: #444;
     color: #fff;
     z-index: 99999;
 }
-body.admin-bar .eucookielaw-banner{
+.eucookielaw-banner.fixedon-top{
+    top: 0;
+
+}
+
+body.admin-bar .eucookielaw-banner.fixedon-top{
     top: 32px;
 }
+.eucookielaw-banner.fixedon-bottom{
+    bottom: 0;
+}
+
 .eucookielaw-banner a {
     color: #fff;
     text-decoration: underline;

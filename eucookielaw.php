@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/diegolamonica/EUCookieLaw
  * Description: A simple WP solution to the European Cookie Law Issue
  * Author: Diego La Monica
- * Version: 1.3.1
+ * Version: 1.4
  * Author URI: http://diegolamonica.info
  * Text Domain: EUCookieLaw
  * Domain Path: /languages
@@ -33,12 +33,16 @@ Class EUCookieLaw{
 	const OPT_LOOKINTAGS    = 'eucookie_law_lookintags';
 
 	const OPT_DEFAULT_LOOKINTAGS = 'script|iframe|img';
+	const OPT_AGREEONSCROLL = 'eucookie_law_agree_on_scroll';
+	const OPT_FIXED_ON      = 'eucookie_law_banner_fixed_on';
+
+	const OPT_DEBUG         = 'eucookie_law_debug';
 
 	private $PLUGIN_DIRECTORY;
 
 	public function EUCookieLaw(){
 		self::$initialized = true;
-		$this->PLUGIN_DIRECTORY =  dirname(__FILE__);
+			$this->PLUGIN_DIRECTORY =  dirname(__FILE__);
 
 		add_action( 'plugins_loaded',       array($this, 'loadTranslations') );
 		add_action('init',                  array($this,'init'));
@@ -49,9 +53,10 @@ Class EUCookieLaw{
 	}
 
 	public function loadTranslations(){
-
+		error_log("Translations");
 		load_plugin_textdomain( __CLASS__, FALSE, basename( dirname( __FILE__ ) ) . '/languages/' );
-		load_plugin_textdomain( self::CUSTOMDOMAIN, FALSE, basename(basename( dirname( __FILE__ ) )) .'EUCookieLawCustom/' );
+
+		load_plugin_textdomain( self::CUSTOMDOMAIN, FALSE, 'EUCookieLawCustom/' );
 	}
 
 	public function init(){
@@ -61,22 +66,25 @@ Class EUCookieLaw{
 		$disalloweddDomains = get_option(self::OPT_3RDPDOMAINS);
 		$lookInTags         = get_option(self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS);
 		$lookInScripts      = get_option(self::OPT_LOOKINSCRIPTS, 'n');
+		$debug              = get_option(self::OPT_DEBUG, 'n');
 
 		define('EUCOOKIELAW_DISALLOWED_DOMAINS',    preg_replace("#\r#", "\n", $disalloweddDomains) );
 		define('EUCOOKIELAW_LOOK_IN_TAGS',          $lookInTags);
-
 		define('EUCOOKIELAW_LOOK_IN_SCRIPTS',       $lookInScripts == 'y');
+
+		define('EUCOOKIELAW_DEBUG',                 ($debug == 'y') );
+
 		require $this->PLUGIN_DIRECTORY . '/eucookielaw-header.php';
 	}
 
 	public function script(){
+		error_log("Scripts");
 		wp_register_script(self::JS, plugins_url('/EUCookieLaw.js', __FILE__) , array(), self::VERSION, false);
 		wp_register_script(self::WPJS, plugins_url('/wpEUCookieLaw.js', __FILE__) , array(self::JS), self::VERSION, false);
+		wp_register_style(self::CSS, plugins_url('/eucookielaw.css', __FILE__), array(), self::VERSION, 'screen');
 
 		if(file_exists(dirname( __FILE__ ) .'Custom/eucookielaw.css' )){
 			wp_register_style(self::CSS, plugins_url('/eucookielaw.css', dirname( __FILE__ ).'Custom/eucookielaw.css'), array(), self::VERSION, 'screen');
-		}else{
-			wp_register_style(self::CSS, plugins_url('/eucookielaw.css', __FILE__), array(), self::VERSION, 'screen');
 		}
 
 
@@ -85,8 +93,10 @@ Class EUCookieLaw{
 		$bannerAgree    = get_option(self::OPT_AGREE, 'I agree');
 		$bannerDisagree = get_option(self::OPT_DISAGREE, 'I disagree') ;
 		$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
-
+		$agreeOnScroll  = get_option(self::OPT_AGREEONSCROLL, 'n');
+		$fixedOn        = get_option(self::OPT_FIXED_ON, 'top');
 		// Localize the script with new data
+
 		$configuration = array(
 			'showBanner'    => true,
 			'reload'        => true,
@@ -94,12 +104,15 @@ Class EUCookieLaw{
 			'message'       => __($bannerMessage, self::CUSTOMDOMAIN),
 			'agreeLabel'    => __($bannerAgree, self::CUSTOMDOMAIN),
 			'disagreeLabel' => __($bannerDisagree, self::CUSTOMDOMAIN),
-			'tag'           => $titleTag
+			'tag'           => $titleTag,
+			'agreeOnScroll' => ($agreeOnScroll == 'y'),
+			'fixOn'         => $fixedOn,
 		);
 		wp_localize_script(self::JS, 'euCookieLawConfig', $configuration );
 
 		wp_enqueue_style(self::CSS);
 		wp_enqueue_script(self::WPJS);
+
 	}
 
 	public function admin(){
@@ -256,14 +269,18 @@ Class EUCookieLaw{
 
 		if(isset($_POST['nonce']) && wp_verify_nonce($_POST['nonce'], __CLASS__)){
 			$_POST = stripslashes_deep($_POST);
-			update_option(self::OPT_TITLE, $_POST['banner_title']);
-			update_option(self::OPT_MESSAGE, $_POST['banner_message']);
-			update_option(self::OPT_AGREE, $_POST['banner_agree']);
-			update_option(self::OPT_DISAGREE, $_POST['banner_disagree']);
-			update_option(self::OPT_3RDPDOMAINS, $_POST['blocked_domains']);
-			update_option(self::OPT_LOOKINTAGS, $_POST['look_in_tags']);
-			update_option(self::OPT_TITLE_TAG, $_POST['tag']);
-			update_option(self::OPT_LOOKINSCRIPTS, $_POST['in_script']);
+			update_option(self::OPT_TITLE,          $_POST['banner_title']);
+			update_option(self::OPT_MESSAGE,        $_POST['banner_message']);
+			update_option(self::OPT_AGREE,          $_POST['banner_agree']);
+			update_option(self::OPT_DISAGREE,       $_POST['banner_disagree']);
+			update_option(self::OPT_3RDPDOMAINS,    $_POST['blocked_domains']);
+			update_option(self::OPT_LOOKINTAGS,     $_POST['look_in_tags']);
+			update_option(self::OPT_TITLE_TAG,      $_POST['tag']);
+			update_option(self::OPT_LOOKINSCRIPTS,  $_POST['in_script']);
+			update_option(self::OPT_AGREEONSCROLL,  $_POST['agree_on_scroll']);
+			update_option(self::OPT_DEBUG,          $_POST['debug']);
+			update_option(self::OPT_FIXED_ON,       $_POST['fix_on']);
+
 		}
 
 		$bannerTitle    = get_option(self::OPT_TITLE, 'Banner title');
@@ -274,6 +291,10 @@ Class EUCookieLaw{
 		$lookInTags     = get_option(self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS);
 		$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
 		$lookInScripts  = get_option(self::OPT_LOOKINSCRIPTS, 'n');
+
+		$debugEnabled   = get_option(self::OPT_DEBUG, 'n');
+		$agreeOnScroll  = get_option(self::OPT_AGREEONSCROLL, 'n');
+		$fixedOn        = get_option(self::OPT_FIXED_ON, 'top');
 
 		?>
 		<table class="form-table">
@@ -310,12 +331,49 @@ Class EUCookieLaw{
 				<th scope="row"><label><?php _e("Look url in <code>script</code> source", self::TEXTDOMAIN); ?></label></th>
 				<td>
 					<label>
-						<input type="radio" value="y" name="in_script" <?php echo ($lookInScripts=='y')?'checked="checked"':''; ?> />
+						<input type="radio" value="y" name="in_script" <?php echo checked($lookInScripts,'y'); ?> />
 						<?php _e('Yes', self::TEXTDOMAIN); ?>
 					</label><br />
 
 					<label>
-						<input type="radio" value="n" name="in_script" <?php echo ($lookInScripts=='n')?'checked="checked"':''; ?> />
+						<input type="radio" value="n" name="in_script" <?php echo checked($lookInScripts,'n'); ?> />
+						<?php _e('No', self::TEXTDOMAIN); ?>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e("Agree on scroll", self::TEXTDOMAIN); ?></label></th>
+				<td>
+					<label>
+						<input type="radio" value="y" name="agree_on_scroll" <?php echo checked($agreeOnScroll, 'y'); ?> />
+						<?php _e('Yes', self::TEXTDOMAIN); ?>
+					</label><br />
+
+					<label>
+						<input type="radio" value="n" name="agree_on_scroll" <?php echo checked($agreeOnScroll, 'n'); ?> />
+						<?php _e('No', self::TEXTDOMAIN); ?>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="fix_on"><?php _e("Fixed on", self::TEXTDOMAIN); ?></label></th>
+				<td>
+					<select name="fix_on" type="text" id="fix_on">
+						<option value="top" <?php echo selected($fixedOn, 'top'); ?> ><?php _e('Top of the page', self::TEXTDOMAIN); ?></option>
+						<option value="bottom" <?php echo selected($fixedOn, 'bottom'); ?>><?php _e('Bottom of the page', self::TEXTDOMAIN); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e("Enable debug", self::TEXTDOMAIN); ?></label></th>
+				<td>
+					<label>
+						<input type="radio" value="y" name="debug" <?php echo checked($debugEnabled,'y'); ?> />
+						<?php _e('Yes', self::TEXTDOMAIN); ?>
+					</label><br />
+
+					<label>
+						<input type="radio" value="n" name="debug" <?php echo checked($debugEnabled,'n'); ?> />
 						<?php _e('No', self::TEXTDOMAIN); ?>
 					</label>
 				</td>

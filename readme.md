@@ -46,6 +46,9 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
 * `reload` if `true` the page will be refreshed after the user accepts the agreement. This is useful is used in 
   conjunction with the server side part.
 * `tag` (only if `showBanner` is `true`) if defined the script will use it as predefined tag for title content of the banner.
+* `fixOn` it defines if the banner is fixed on top or bottom, default value, if not defined or empty, is `top`. Allowed values are `top` or `bottom`.
+* `agreeOnScroll` if `true`, when the user will scroll the page, then the agreement is implicitly accepted. The default value is `false`.  
+  **Note:** if `agreeOnScroll` is setted to `true`, the `reload` option has no effect. 
 
 Once `UECookieLaw` is initialized, you can access some useful methods in your JavaScript:
 
@@ -138,11 +141,14 @@ Further if you want to block some javascript elements you can do it by adding a 
 ### Block specific domain
 If you want to block specific domains you can define in your script (before including `eucookielaw-header.php`) two constants:
 
-* `EUCOOKIELAW_DISALLOWED_DOMAINS` a semicolon (`;`) separated list of URLs disallowed since the user does not accept the agreement.
-  Each space before and/or after each URL will be removed.
-* `EUCOOKIELAW_LOOK_IN_TAGS` a pipe (`|`) separated list of tags where to search for the domains to block. 
+* `EUCOOKIELAW_DISALLOWED_DOMAINS` a semicolon (`;`) separated list of URLs disallowed since the user does not accept the agreement.  
+  Each space before and/or after each URL will be removed.  
+  **Note:** if the domain start by a dot (eg. `.google.com`) then all the related subdomains will be included in the temporary blacklist.
+* `EUCOOKIELAW_LOOK_IN_TAGS` a pipe (`|`) separated list of tags where to search for the domains to block.   
   If not specified, the deafault tags are `iframe`. `script`, `link`.
 * `EUCOOKIELAW_LOOK_IN_SCRIPTS` a boolean value, if `true` the URLs defined in `EUCOOKIELAW_DISALLOWED_DOMAINS` will be searched in the `<script>...</script>` tags too.
+* `EUCOOKIELAW_DEBUG` a boolean value, if `true` the HTML output will report before each replacement the rule applied and at the beginning of the file it will show all the applied rules.  
+  **Important** do not keep it enabled on production environment.
 
 ## Using EUCookieLaw into WordPress
 Just download the zip and install it in your WordPress.
@@ -179,7 +185,7 @@ which is their purpose and how to disable them. And yes! Don't forget to put the
 The structure of generated banner (with the default heading tag settings) is the following:
 
 ```html
-<div class="eucookielaw-banner" id="eucookielaw-135">
+<div class="eucookielaw-banner fixedon-top" id="eucookielaw-135">
   <div class="well">
     <h1 class="banner-title">The banner title</h1>
     <p class="banner-message">The banner message</p>
@@ -204,7 +210,7 @@ You can make your own CSS to build a custom aspect for the banner.
 However, if you prefer, you can start from the bundled CSS.  
 
 **NOTE:** If you are using the script as WordPress plugin, the custom CSS must be located in the directory `wp-content/plugins/EUCookieLawCustom/` 
-and must be named `eucookielaw.css`. Then it will be read in the place of the default plugin CSS.
+and must be named `eucookielaw.css`. Then it will be read in conjunction with the default plugin CSS.
 
 # Contribute
 
@@ -216,13 +222,65 @@ If you want to get involved in this plugin development, then fork the repository
 If you find this script useful, and since I've noticed that nobody did this script before of me, 
 I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest).   :)
 
+# Changelog
+
+## 1.4
+* **NEW:** when you specify a domain starting with a dot (eg. `.google.com`) all the subdomains are valid (eg. `www.google.com` and `sub.domain.google.com`)
+* **NEW:** Improved the banner loading (loaded before the DOM Event `load`)
+* **NEW:** Optional implicit user agree on page scrolling ([Issue #4](https://github.com/diegolamonica/EUCookieLaw/issues/4)).
+* **NEW:** Debugging options
+* **NEW:** You can fix the banner on top or bottom of the page.
+* **NEW:** The custom CSS (from `EUCookieLawCustom`) will be loaded in conjunction with the default CSS.
+* **BUGFIX:** removed the `<![CDATA[ ... ]]>` envelop on script replacement due to some browser incompatibility.
+* **BUGFIX:** Custom translations was never read
+* updated translation files
+* updated documentation
+* updated the version number
+
+## 1.3.1
+* **BUGFIX:** the default text for disagree button when not given was `Disagree` instead it should be empty.
+* **BUGFIX:** whatever is the name of the plugin directory the directory for the customizations (translations and CSS) must be `/wp-content/plugins/EUCookieLawCustom/`.
+* updated documentation
+* updated the version number
+
+## 1.3
+* Updated the eucookielaw-header.php,
+  * **NEW:** now the disallowed domains trims the spaces on each domain. It means that is allowed to write `domain1.com ; domain2.com` and they will be correctly interpreted as `domain1.com` and `domain2.com`
+* **NEW:** If not defined the disagee label text then the button is not shown. Useful for informative non-restrictive cookie policy.
+* **BUGFIX:** the cookie `__eucookielaw` setted by javascript is defined at root domain level.
+* updated documentation
+* updated the version number
+
+## 1.2
+* Updated the eucookielaw-header.php,
+  * **NEW:** now the search of url is performed in `<script>...</script>` tags too.
+  * **BUGFIX:** some translations strings were broken.
+* updated translation files
+* updated documentation
+* updated the version number
+
+## 1.1
+This update introduces several improvements, features and bugfixes. For a detailed information about the new release see:
+[Issue #1](https://github.com/diegolamonica/EUCookieLaw/issues/1)
+
+* updated the eucookielaw-header.php,
+  * **NEW:** now it blocks script tags with `data-eucookielaw="block"` attribute
+  * **NEW:** now is possible to define a blacklist of domains to block before the user consent the agreement
+  * **NEW:** the blacklist is related to a set of tags (by default the plugin will scan `iframe`, `link` and `script` tags
+* **NEW::** managed title tag, blocked domains and tags to scan
+* **NEW:** if the plugin WP Super Cache is installed then the plugin will clear the cache until the user has not approved the agreeement to ensure to show always the right contents
+* **NEW::** if there is a CSS file named `eucookielaw.css` in the custom directory `wp-content/plugins/EUCookieLawCustom/` the it will be appliead in place of the default one.
+* **BUGFIX:** unescaped post data before saving the admin settings
+* updated the version number
+* updated translation strings
+* updated documentation
+
+## 1.0
+* First release
+
 # Who is using EUCookieLaw
 
-Here follows a list of sites that is using EUCookiesLaw Plugin:
-
-* [Diego La Monica . info](http://diegolamonica.info) (WP)
-* [Parking Paradise Siracusa](http://www.parkingparadise.it/) (WP)
-* [Clienti Valorlife](http://www.clienti-valorlife.it/) (WP)
-* Your site title - Your url - Type (`WP` or `JS`)
-
+Several sites are using EUCookieLaw as WordPress plugin (actually there are more than 100 installs).
+If you want to let users know your experience in using EUCookieLaw, there is a [Facebook page](https://www.facebook.com/UsaEUCookieLaw) where you can share your thoughts and experience.
 **Note:** To add your site fork this repository, add your site and make a pull request... or simply send [me](mailto:diego.lamonica@gmail.com) a message. :)
+
