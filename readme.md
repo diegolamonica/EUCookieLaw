@@ -56,7 +56,11 @@ Once `UECookieLaw` is initialized, you can access some useful methods in your Ja
 * `reject` reject the cookies agreement
 * `isRejected` if the user have rejected the request to store cookie
 * `isCookieEnabled` if the site can store cookies
-
+* `reconsider` allows the user to review again the banner and take a new choice.
+  To show invoke this function from everywhere in your policy page you can create a link or a button with the following code:  
+```html
+<a href="#" onclick="(new EUCookieLaw()).reconsider(); return false;">Reconsider my choice</a>
+```
 #### Custom agreement example
 
 Synchronous mode ([see demo](http://diegolamonica.info/demo/cookielaw/demo1.html)):
@@ -148,14 +152,42 @@ If you want to block specific domains you can define in your script (before incl
   If not specified, the deafault tags are `iframe`. `script`, `link`.
 * `EUCOOKIELAW_LOOK_IN_SCRIPTS` a boolean value, if `true` the URLs defined in `EUCOOKIELAW_DISALLOWED_DOMAINS` will be searched in the `<script>...</script>` tags too.
 * `EUCOOKIELAW_DEBUG` a boolean value, if `true` the HTML output will report before each replacement the rule applied and at the beginning of the file it will show all the applied rules.  
-  **Important** do not keep it enabled on production environment.
+  **Important** do not keep it enabled on production environment.  
+  **Note:** in the beginning of your HTML file you can see `<!-- (EUCookieLaw Debug Enabled) -->` message followed by some other details. 
+  Those messages are useful to understand what exactly is happening in your site.
 
 ## Using EUCookieLaw into WordPress
-Just download the zip and install it in your WordPress.
+
+The plugin is available on [WordPress plugin directory](http://wordpress.org/plugins/eucookielaw/).
+
+If you want install from this repository, just download the zip and install it in your WordPress.
 The plugin actually supports translation in both Italian (by translation file) and English (default). 
 
-The plugin is compliant (also read as *has been tested*) with WP Super Cache plugin to serve the right contents when the user has not yet approved the agreement.
+The plugin is compliant (also read as **has been tested**) with **WP Super Cache**, **W3 Total Cache** and **Zen Cache** plugins to serve the right contents when the user has not yet approved the agreement.
 
+### Shortcodes
+
+Actually EUCookieLaw supports two shortcodes 
+#### `EUCookieLawReconsider`
+ 
+The purpose of this shortcode is to produce a button that allow user to choose again whether to consent or not the cookie policy.
+
+It will show a link with `btn` and `btn-warning` classes and text defined in the `label` attribute.
+If you don't define the `label` attribute the default value is `Reconsider`.
+
+**Example:** `[EUCookieLawReconsider label="I want take another choice"]` 
+
+#### `EUCookieLawBlock`
+The purpose of this shortcode is to wrap contents into a post and make it available once the user agreed the policy.
+
+**Example:** 
+```html
+[EUCookieLawBlock]
+    <p>
+        This content is blocked until user consent
+    </p>
+[EUCookieLawBlock]
+```
 ### How to make the banner title and message translate in the proper language.
 
 I've implemented the custom text-domain files ( `EUCookieLawCustom-it_IT.po` / `EUCookieLawCustom-it_IT.po` ).  
@@ -169,12 +201,12 @@ Then take the file default and you have to put 4 strings in your translation fil
 * `Banner description`
 * `I agree`
 * `I disagree`
+* `Reconsider`
 
 Remember to put the above text in the plugin settings page (default behavior) and to produce the translation files 
 (starting from the `default.po` located in the `EUCookieLawCustom` directory).
 
 You can see a production example on my [personal WebSite](http://diegolamonica.info).
-
 
 ### Create a detailed policy privacy page
 
@@ -223,6 +255,30 @@ If you find this script useful, and since I've noticed that nobody did this scri
 I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest).   :)
 
 # Changelog
+
+## 1.5
+
+* **NEW:** Now the plugin is able to detect if the user agent and does not block contents if it is search engine
+* **NEW:** All the external contents are loaded after the user consent without page reloading ( Issues [#4](https://github.com/diegolamonica/EUCookieLaw/issues/4) and [#10](https://github.com/diegolamonica/EUCookieLaw/issues/10))
+* **NEW:** The script allows to define the consent duration in days (Issue [#7](https://github.com/diegolamonica/EUCookieLaw/issues/7), [#17](https://github.com/diegolamonica/EUCookieLaw/issues/17) and [#23](https://github.com/diegolamonica/EUCookieLaw/issues/23))
+* **NEW:** Now is possible to check almost in every HTML element ( Implicitly resolved issue [#6](https://github.com/diegolamonica/EUCookieLaw/issues/6))
+* **NEW:** The script remembers the user rejection.
+* **NEW:** New JavaScript public method `reconsider` to revoke the consent (and the rejection) showing the banner again (Issue [#7](https://github.com/diegolamonica/EUCookieLaw/issues/7))
+* **NEW:** \[WP\] Added shortcode for reconsider button (see documentation for further details) (Issue [#7](https://github.com/diegolamonica/EUCookieLaw/issues/7))
+* **NEW:** \[WP\] Added shortcode for wrapping contents (see documentation for further details) 
+* **NEW:** Now the consent on scroll is fired at least after 100px scroll (up or down)
+* **IMPROVEMENT:** \[WP\] Made compliant with **WP Super Cache**, **W3 Total Cache**, **Zen Cache** (Issue [#23](https://github.com/diegolamonica/EUCookieLaw/issues/23))
+* **IMPROVEMENT:** Javascript has been refactored to improve performance and maintenability
+* **IMPROVEMENT:** \[WP\] Admin interface improved
+* **IMPROVEMENT:** Some CSS improvements (Issue (Issue [#8](https://github.com/diegolamonica/EUCookieLaw/issues/8))
+* **BUGFIX:** Consent on scroll doesn't work propery
+* **BUGFIX:** \[WP\] Custom content path not recognized correctly ( Issue [#9](https://github.com/diegolamonica/EUCookieLaw/issues/9))
+* **BUGFIX:** Typos where `script` was written as `srcript` on server script (Issue [#16](https://github.com/diegolamonica/EUCookieLaw/issues/16))
+* **BUGFIX:** Only first occourrence of the same/similar URL is blocked (Issue [#19](https://github.com/diegolamonica/EUCookieLaw/issues/19))
+* **BUGFIX:** Corrected some IE8 weird behavior
+* updated translation files
+* updated documentation
+* updated the version number
 
 ## 1.4.1
 * **BUGFIX:** fixed the javascript that has wrong characters in the script
@@ -284,6 +340,5 @@ This update introduces several improvements, features and bugfixes. For a detail
 # Who is using EUCookieLaw
 
 Several sites are using EUCookieLaw as WordPress plugin (actually there are more than 100 installs).
-If you want to let users know your experience in using EUCookieLaw, there is a [Facebook page](https://www.facebook.com/UsaEUCookieLaw) where you can share your thoughts and experience.
-**Note:** To add your site fork this repository, add your site and make a pull request... or simply send [me](mailto:diego.lamonica@gmail.com) a message. :)
-
+If you want to let users know your experience in using EUCookieLaw, there is a [Facebook page](https://www.facebook.com/UsaEUCookieLaw) 
+where you can share your thoughts and experience.

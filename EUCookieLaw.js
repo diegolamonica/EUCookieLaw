@@ -1,7 +1,7 @@
 /**
  * EUCookieLaw: simple object to accomplish european law requirements about cookie transmission to clients
  * @class EUCookieLaw
- * @version 1.4.1
+ * @version 1.5
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica
@@ -10,7 +10,42 @@
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 var EUCookieLaw = (function (doc) {
-	var setProperty = function (object, prop, _set, _get) {
+
+	var getScrollTop = function (){
+		if(typeof pageYOffset != 'undefined'){
+			// most browsers except IE before #9
+			return pageYOffset;
+		}
+		else{
+
+			var body = doc.body, //IE 'quirks'
+				docEl = doc.documentElement; //IE with doctype
+			return (docEl.clientHeight)? docEl: body;
+		}
+	};
+
+	var buildBanner = function () {
+			if(theBannerId!='' && doc.getElementById(theBannerId)){
+
+			}else {
+
+				var theDiv = doc.createElement("div");
+				theBannerId = 'eucookielaw-' + parseInt(Math.random() * 200);
+				theDiv.setAttribute('id', theBannerId);
+				theDiv.className = "eucookielaw-banner fixedon-" + settings.fixOn;
+				theDiv.innerHTML =  '<div class="well">' +
+				((settings.tag!='')?('<' + settings.tag + ' class="banner-title">' + settings.bannerTitle + '</' + settings.tag + '>'):'') +
+				'<p class="banner-message">' + settings.message + '</p>' +
+				'<p class="banner-agreement-buttons">' +
+				((settings.disagreeLabel!= '') ? '<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">' + settings.disagreeLabel + '</a>' : '') +
+				'<a href="#" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies();">' + settings.agreeLabel + '</a>'+
+				'</p>' +
+				'</div>';
+				var firstNode = body.childNodes[0];
+				body.insertBefore(theDiv, firstNode);
+			}
+		},
+		setProperty = function (object, prop, _set, _get) {
 			if (typeof(Object.defineProperty) === 'function') {
 				var propObject = {
 					configurable: true
@@ -26,140 +61,286 @@ var EUCookieLaw = (function (doc) {
 
 			}
 		},
-		cookieEnabled = false,
-		onScroll = false,
-		isOriginal = true,
+		hasCookie = function(){ return /__eucookielaw=true/.test(doc.cookie); },
+		applySettings = function(settings) {
+
+			for (var key in defaultSettings) {
+				if (settings[key] === undefined) {
+					settings[key] = defaultSettings[key];
+				}
+			}
+
+			return settings;
+		},
+		userStorage = window.sessionStorage || window.localStorage,
+		originalCookie = doc.cookie, // For future use
+		scrolled = false,
 		instance = null,
-		cookieRejected = false,
-		askForCookie = null,
-		showBanner = false,
-		defaultTitle = '',
-		disagreeLabel = '',
-		agreeLabel = '',
-		defaultMessage = '',
-		reloadAfterAgree = false,
+		settings,
+		didAChoice = false,
+		defaultSettings = {
+			debug: false,
+			agreeOnScroll: false,
+			cookieEnabled: false,
+			cookieRejected: false,
+			showBanner: false,
+			bannerTitle: '',
+			message: 'La legge europea sulla privacy e la conservazione dei cookie richiede il tuo consenso prima di conservare i cookie. Me lo consenti?',
+			disagreeLabel: '',
+			agreeLabel: 'Agree',
+			reload: false,
+			tag: 'h1',
+			fixOn: 'top',
+			duration: 0,
+			path: '/',
+			blacklist: [],
+			showAgreement: function () {
+				if(settings.showBanner) {
+					var _showBanner = function () {
+						if (body) {
+							buildBanner();
+						}else{
+							setTimeout(_showBanner, 50);
+						}
+					};
+					_showBanner();
+				}else {
+					didAChoice = true;
+
+					if (!instance.isRejected() && confirm(settings.message)) {
+						instance.enableCookies();
+					} else {
+
+						settings.cookieRejected = true;
+
+					}
+				}
+				return instance.isCookieEnabled();
+			}
+		},
+		isOriginal = true,
 		theBannerId = '',
-		theTitleTag = '', // default is h1
-		fixOn = '', // default is 'top'
+		docWriteOverrided = {},
+		docWriteContext = undefined,
 		body;
-
-
 	return function EUCookieLaw(options) {
-		if (/__eucookielaw=true/.test(doc.cookie)) return instance;
+
 		if (instance instanceof EUCookieLaw) return instance;
+
+		settings = applySettings(options);
 
 		instance = this;
 
+		var onAgree = function(){
+			var elements = document.querySelectorAll("[data-eucookielaw-attr]");
+			window.selectedElements = elements; // Global var for debug purpose
+
+			for(var elIndex =0; elIndex < elements.length; elIndex++) {
+
+				var element = elements[elIndex],
+					theAttribute    = element.getAttribute('data-eucookielaw-attr'),
+					theValue        = element.getAttribute('data-eucookielaw-dest'),
+					theId           = element.getAttribute('id');
+
+				switch (theAttribute){
+					case 'html':
+						element.innerHTML = theValue;
+						var epn = element.parentNode,
+							ecn = element.childNodes;
+						while(ecn[0]){
+							epn.insertBefore(ecn[0], element);
+						}
+						epn.removeChild(element);
+						break;
+					case 'direct':
+						theValue = docWriteOverrided[theId];
+						element.innerHTML = theValue;
+						element.setAttribute('style', '');
+						break;
+					case 'script':
+
+						docWriteContext = element;
+						var script = (element.childNodes[0])?element.childNodes[0].innerHTML:docWriteOverrided[theId];
+						try {
+							var f = new Function('', script);
+							f();
+						}catch(e){
+							if(settings.debug){
+								console.error("Something goes wrong in function execution", f.toString());
+							}
+
+						}
+						docWriteContext.parentNode.removeChild( docWriteContext );
+						docWriteContext = undefined;
+					default:
+						element.setAttribute(theAttribute, theValue);
+				}
+
+			}
+
+		};
+
 		this.enableCookies = function () {
-			cookieEnabled = true;
-			cookieRejected = false;
+			didAChoice = true;
+			userStorage.removeItem('rejected');
+
+			settings.cookieEnabled = true;
+			settings.cookieRejected = false;
 			if (!isOriginal) {
 				delete doc.cookie;
+				onAgree();
 				isOriginal = true;
 			}
+
+			if(settings.duration!=0) {
+				var expires = new Date();
+				expires.setDate(expires.getDate() + parseInt( settings.duration) );
+				if(settings.debug) console.log("Injected cookie expires on: ", expires);
+			}
+
 			doc.cookie = "__eucookielaw=true"
-						+ ";domain=" + window.location.host + ";path=/";
+						+ ";domain=" + window.location.host
+						+ ";path=" + settings.path
+						+ ((settings.duration!=0)?";expires=" + expires.toGMTString():'');
 			removeBanner();
 
-			if(reloadAfterAgree && !onScroll) window.location.reload();
+			if(settings.reload && !settings.agreeOnScroll) window.location.reload();
 
 		};
 		this.reject = function () {
-			cookieRejected = true;
-			removeBanner();
+			if(!hasCookie()){
+				console.log("Calling Reject");
+				didAChoice = true;
+				userStorage.setItem("rejected", true);
+				settings.cookieRejected = true;
+				removeBanner();
+			}
 
+		};
+		this.reconsider = function(){
+
+			userStorage.removeItem('rejected');
+			doc.cookie = "__eucookielaw="
+				+ ";domain=" + window.location.host
+				+ ";path=" + settings.path
+				+ ';expires=Thu, 01 Jan 1970 00:00:01 GMT';
+
+			scrolled = false;
+			didAChoice = false;
+			settings.showAgreement();
 		};
 		this.isRejected = function () {
-			return cookieRejected;
+			return settings.cookieRejected;
 		};
 		this.isCookieEnabled = function () {
-			return cookieEnabled;
+			return settings.cookieEnabled;
 		};
 
-		var buildBanner = function () {
-			body = doc.body;
-			if(theBannerId!='' && doc.getElementById(theBannerId)){
-
-			}else {
-
-				var theDiv = doc.createElement("div");
-				theBannerId = 'eucookielaw-' + parseInt(Math.random() * 200);
-				theDiv.setAttribute('id', theBannerId);
-				theDiv.className = "eucookielaw-banner fixedon-" + fixOn;
-				theDiv.innerHTML =  '<div class="well">' +
-					'<' + theTitleTag + ' class="banner-title">' + defaultTitle + '</' + theTitleTag + '>' +
-					'<p class="banner-message">' + defaultMessage + '</p>' +
-					'<p class="banner-agreement-buttons">' +
-						((disagreeLabel!= '') ? '<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">' + disagreeLabel + '</a>' : '') +
-						'<a href="#" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies();">' + agreeLabel + '</a>'+
-					'</p>' +
-				'</div>';
-				var firstNode = body.childNodes[0];
-				body.insertBefore(theDiv, firstNode);
-			}
-		},
-		removeBanner = function(){
+		var removeBanner = function(){
 			if(theBannerId!=''){
 				body.removeChild( doc.getElementById(theBannerId) );
 				theBannerId = '';
 			}
 		};
-		theTitleTag = options.tag || 'h1';
-		defaultMessage = options.message || 'La legge europea sulla privacy e la conservazione dei cookie richiede il tuo consenso prima di conservare i cookie. Me lo consenti?';
-		reloadAfterAgree = options.reload;
-		askForCookie = typeof(options.showAgreement) == 'function' ? options.showAgreement : function () {
-			if(showBanner) {
-				buildBanner();
-			}else {
-				if (!instance.isRejected() && confirm(options.message)) {
-					instance.enableCookies();
-				} else {
-					cookieRejected = true;
-				}
-			}
-			return instance.isCookieEnabled();
-		};
 
-		showBanner = options.showBanner;
-		if(showBanner && options.bannerTitle) {
-			defaultTitle = options.bannerTitle;
-			disagreeLabel = options.disagreeLabel || "";
-			agreeLabel = options.agreeLabel || "Agree";
-			onScroll = options.agreeOnScroll || false;
-			fixOn   = options.fixOn || 'top';
+		if(settings.showBanner) {
 
 			var waitReady = function () {
-				if (document.readyState === 'complete') {
-					buildBanner();
+				if (document.readyState === 'complete' && doc.body) {
+					body = doc.body;
+					previousScrollTop = getScrollTop();
+					if(!userStorage.getItem('rejected') && !hasCookie()){
+						buildBanner();
+					} else{
+						instance.reject();
+					}
 				} else {
 					setTimeout(waitReady, 100);
 				}
-			}
-
+			};
 			waitReady();
-			// window.addEventListener('load', buildBanner);
-			if (onScroll){
-				document.addEventListener('scroll', function () {
-					console.log("Scrolling");
-					instance.enableCookies();
+
+			if (settings.agreeOnScroll){
+				previousScrollTop = getScrollTop();
+				var evt = document.addEventListener || document.attachEvent ;
+				evt('scroll', function () {
+
+					if(!scrolled && body && Math.abs(getScrollTop() - previousScrollTop)>50 && !didAChoice) {
+						scrolled = true;
+						instance.enableCookies();
+						removeBanner();
+					}
 				});
 			}
 		}
 
+		if(hasCookie()) return instance;
+
 		isOriginal = false;
 		setProperty(doc, 'cookie', function (cookie) {
-			body = doc.body;
-			if (!cookieEnabled) {
-				if (askForCookie()) {
+			if(settings.debug) console.info("Trying to write the cookie " + cookie);
+			if (!settings.cookieEnabled) {
+				if(settings.debug) console.log("But document cookie is not enabled");
+				if (settings.showAgreement()) {
 					instance.enableCookies();
 					doc.cookie = cookie;
 				}
 				return false;
 			} else {
+				if(settings.debug) console.log("I'm resetting the original document cookie");
 				delete doc.cookie;
 				doc.cooke = cookie;
 			}
 			return cookie;
-		}, null);
+		}, function(){
+			return ''; //originalCookie;
+		});
+
+		var documentWrite = doc.write;
+
+		doc.write = function(buffer) {
+			function getUniqueId(){
+
+				var id = '';
+				while(true){
+					id = '__eucookielaw-document-write-' + (Math.random() * 200);
+					if(!document.getElementById(id)) break;
+
+				}
+				return id;
+
+			}
+			if(!instance.isCookieEnabled()) {
+				if(settings.debug) console.log("Cookie not enabled setting protection");
+				for (var i = 0; i < settings.blacklist.length; i++) {
+					if(settings.debug) console.log(buffer);
+					var entry = settings.blacklist[i];
+					if (buffer.indexOf(entry) !== -1) {
+						if(settings.debug) console.log(entry);
+						var id = getUniqueId();
+						docWriteOverrided[id] = buffer;
+						buffer = '<!-- Removed by EUCookieLaw because matches "' + entry + '" --><span id="' + id + '" data-eucookielaw-attr="direct" data-eucookie-dest="direct" style="display:none;"></span>';
+						break;
+					}
+				}
+			}
+			if(docWriteContext) {
+				var docFrag = doc.createDocumentFragment(),
+					docTemp = doc.createElement('div'),
+					parentContainer = docWriteContext.parentNode;
+				docTemp.innerHTML = buffer;
+				while (docTemp.firstChild) docFrag.appendChild(docTemp.firstChild);
+				// docFrag.innerHTML = buffer;
+				if (docWriteContext.nextSibling) {
+					if(settings.debug) console.log("appending after");
+					parentContainer.insertBefore(docFrag, docWriteContext.nextSibling);
+				} else {
+					parentContainer.appendChild(docFrag);
+					if(settings.debug) console.log("appending as last");
+				}
+			}else{
+				documentWrite.apply(document,[buffer]);
+			}
+		};
 	};
 })(document);

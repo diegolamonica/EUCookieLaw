@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 1.4.1
+Stable tag: 1.5
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -25,7 +25,7 @@ It simply alters the default `document.cookie` behavior to disallow cookies to b
 until the user accept the agreement. The same does for the server side where since the user does not have accepted the agreement,
 then it would not store any cookie.
 
-   Note that this plugin is not able to block third-part cookies.
+   **Note that this plugin blocks any URL you define which generates third-party cookies.**
 
 To get detailed informations about the plugin go to https://github.com/diegolamonica/EUCookieLaw
 
@@ -35,6 +35,34 @@ For manual installation just download the zip file then upload via the WordPress
 in a local directory then upload the whole directory under `/wp-content/plugins/`.
 
 == Changelog ==
+
+== 1.5 ==
+
+This update introduces several improvements, features and bugfixes. For a detailed information about the new release see
+the [documentation page](https://github.com/diegolamonica/EUCookieLaw/) and the [Milestone 1.5](https://github.com/diegolamonica/EUCookieLaw/issues?q=milestone%3A1.5+is%3Aclosed)
+
+* **NEW:** Now the plugin is able to detect if the user agent and does not block contents if it is search engine
+* **NEW:** All the external contents are loaded after the user consent without page reloading ( Issues [#4](https://github.com/diegolamonica/EUCookieLaw/issues/4) and [#10](https://github.com/diegolamonica/EUCookieLaw/issues/10))
+* **NEW:** The script allows to define the consent duration in days (Issue [#7](https://github.com/diegolamonica/EUCookieLaw/issues/7), [#17](https://github.com/diegolamonica/EUCookieLaw/issues/17) and [#23](https://github.com/diegolamonica/EUCookieLaw/issues/23))
+* **NEW:** Now is possible to check almost in every HTML element ( Implicitly resolved issue [#6](https://github.com/diegolamonica/EUCookieLaw/issues/6))
+* **NEW:** The script remembers the user rejection.
+* **NEW:** New JavaScript public method `reconsider` to revoke the consent (and the rejection) showing the banner again (Issue [#7](https://github.com/diegolamonica/EUCookieLaw/issues/7))
+* **NEW:** \[WP\] Added shortcode for reconsider button (see documentation for further details) (Issue [#7](https://github.com/diegolamonica/EUCookieLaw/issues/7))
+* **NEW:** \[WP\] Added shortcode for wrapping contents (see documentation for further details)
+* **NEW:** Now the consent on scroll is fired at least after 100px scroll (up or down)
+* **IMPROVEMENT:** \[WP\] Made compliant with **WP Super Cache**, **W3 Total Cache**, **Zen Cache** (Issue [#23](https://github.com/diegolamonica/EUCookieLaw/issues/23))
+* **IMPROVEMENT:** Javascript has been refactored to improve performance and maintenability
+* **IMPROVEMENT:** \[WP\] Admin interface improved
+* **IMPROVEMENT:** Some CSS improvements (Issue (Issue [#8](https://github.com/diegolamonica/EUCookieLaw/issues/8))
+* **BUGFIX:** Consent on scroll doesn't work propery
+* **BUGFIX:** \[WP\] Custom content path not recognized correctly ( Issue [#9](https://github.com/diegolamonica/EUCookieLaw/issues/9))
+* **BUGFIX:** Typos where `script` was written as `srcript` on server script (Issue [#16](https://github.com/diegolamonica/EUCookieLaw/issues/16))
+* **BUGFIX:** Only first occourrence of the same/similar URL is blocked (Issue [#19](https://github.com/diegolamonica/EUCookieLaw/issues/19))
+* **BUGFIX:** Corrected some IE8 weird behavior
+* updated translation files
+* updated documentation
+* updated the version number
+
 
 = 1.4.1 =
 * **BUGFIX:** fixed the javascript that has wrong characters in the script
