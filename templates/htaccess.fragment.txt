@@ -1,0 +1,7 @@
+
+
+# BEGIN EUCookieLaw
+RewriteEngine On
+RewriteRule EUCookieCache\.php - [L]
+RewriteRule (.*) ./EUCookieCache\.php?p=$1 [L]
+# END EUCookieLaw

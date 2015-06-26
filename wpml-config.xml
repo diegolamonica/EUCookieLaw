@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wpml-config>
+    <admin-texts>
+        <key name="eucookie_law_title" />
+        <key name="eucookie_law_description" />
+        <key name="eucookie_law_agree" />
+        <key name="eucookie_law_disagree" />
+    </admin-texts>
+</wpml-config>

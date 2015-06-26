@@ -35,32 +35,80 @@ that lives during the current session.
 ### Customize the behavior
 the `EUCookieLaw` initialization expect an Object with the following properties:
 
-* `message` is the message used by the default confirmation dialog. In the case of `showBanner`, the `message` can be an HTML content.
+* `showBanner` (`boolean` default `false`) if you want to show a banner at the top of your page you need to set this 
+  option to `true`. 
+
+* `reload` (`boolean` default `false`)  if `true` the page will be refreshed after the user accepts the agreement. This is useful is used 
+  in conjunction with the server side part.
+
+* `message` is the message used by the default confirmation dialog. In the case of `showBanner`, the `message` can be an 
+  HTML content.
+
+* `debug` (`boolean` default `false`)  if `true` will show in browser console some useful informations about script execution.
+
+* `cookieEnabled` (`boolean` default `false`)  set to `true` to not show the banner. However this setting will change 
+  once the user take a choice.
+
+* `cookieRejected` (`boolean` default `false`)  set to `true` to not show the banner. However this setting will change 
+  once the user take a choice.
+
+* `duration` (`integer` default `0`) the number of days you want the cookie will expire. If `0`, it will produce a 
+  session cookie. 
+
+* `remember` (`boolean` default `true`) if seted to `true`, the user rejection will be remember through the current session 
+  else the choice will be valid only for the current page.   
+
+* `path` (`string` defualt `/`) defines the path where the consent cookie will be valid.
+
+* `cookieList` (`array` default `[]`) the list of techincal cookies the user cannot choose to reject. If some script try 
+  to write one of the listed cookie it will be accepted.  
+  **TIP:** You can use the `*` wildchar as suffix to intend all the cookies that starts with a specific value (eg. `__umt*` will mean `__umta`, `__umtc` and so on).
+   
+* `blacklist` (`array` default `[]`) if some script try to inject HTML into the page trhough the `document.write` it will be allowed only if
+  in the code is not present something that points to one of the `blacklist`ed domain.
+
+#### Options available only if `showBanner` is `true` 
+
+* `id` (`string` default `boolean` `false`) if not `false` the banner box will not be created and the script will assume
+  that the banner is the one referred by the `id`. 
+  **NOTE:** do not set the hash (`#`) before the id (eg. **OK** `id: 'my-box'` **NO** `id: '#my-banner'`)
+  
+* `tag` if defined the script will use it as predefined tag for title content of the banner. 
+   If not defined the banner title will not be shown.
+   
+* `bannerTitle` will be the banner title
+
+* `agreeLabel` the agree button label. Default is `I agree`
+
+* `disagreeLabel` the disagreement button label. Default is an empty string. If not given the disagree button will not be shown.
+
+* `fixOn` it defines if the banner is fixed on top or bottom, default value, if not defined or empty, is `top`. Allowed values are `top`, `bottom` or `static`.
+
 * `showAgreement` is the callback method that will show the dialog with the user agreement about the cookie usage. If you 
   use a synchronous mode to show a dialog (eg. `confirm` method) the `showAgreement` must return `true` if the user have 
   accepted the agreement, in all other cases (user rejected the agreement or in asynchronous mode) it must return `false`.
-* `showBanner` (`boolean`)if you want to show a banner at the top of your page you need to set tis option to `true`. 
-* `bannerTitle` (only if `showBanner` is `true`) the banner title
-* `agreeLabel` (only if `showBanner` is `true`) the agree button label. Default is `I agree`
-* `disagreeLabel` (only if `showBanner` is `true`) the disagreement button label. Default is an empty string. If not given the disagree button will not be shown.
-* `reload` if `true` the page will be refreshed after the user accepts the agreement. This is useful is used in 
-  conjunction with the server side part.
-* `tag` (only if `showBanner` is `true`) if defined the script will use it as predefined tag for title content of the banner.
-* `fixOn` it defines if the banner is fixed on top or bottom, default value, if not defined or empty, is `top`. Allowed values are `top` or `bottom`.
+
 * `agreeOnScroll` if `true`, when the user will scroll the page, then the agreement is implicitly accepted. The default value is `false`.  
   **Note:** if `agreeOnScroll` is setted to `true`, the `reload` option has no effect. 
+
+* `agreeOnClick` if `true`, the user express its conesnt by clicking wherever on the page (but outside the banner).
 
 Once `UECookieLaw` is initialized, you can access some useful methods in your JavaScript:
 
 * `enableCookies` enables the site to store cookies
+
 * `reject` reject the cookies agreement
+
 * `isRejected` if the user have rejected the request to store cookie
+
 * `isCookieEnabled` if the site can store cookies
+
 * `reconsider` allows the user to review again the banner and take a new choice.
-  To show invoke this function from everywhere in your policy page you can create a link or a button with the following code:  
+  To invoke this function from everywhere in your policy page you can create a link or a button with the following code:  
 ```html
 <a href="#" onclick="(new EUCookieLaw()).reconsider(); return false;">Reconsider my choice</a>
 ```
+
 #### Custom agreement example
 
 Synchronous mode ([see demo](http://diegolamonica.info/demo/cookielaw/demo1.html)):
@@ -129,7 +177,7 @@ The server-side script intercept the output buffer and will remove the sent cook
 agreement.
 
 Then you should include the file `eucookielaw-header.php` as the first operation on your server.
-This will ensure you that any of your script or CMS like Wordpress, Drupal, Joomla or whatever you are using, is able to 
+This will ensure you that any of your script or CMS like Drupal, Joomla or whatever you are using, is able to 
 write a cookie if the user doesn't given his consensus.
 
 ```php
@@ -142,15 +190,31 @@ script does not override the built-in function.
 
 Further if you want to block some javascript elements you can do it by adding a `data-eucookielaw="block"` attribute to the `script` elements.
  
-### Block specific domain
+### Server side constants
 If you want to block specific domains you can define in your script (before including `eucookielaw-header.php`) two constants:
 
 * `EUCOOKIELAW_DISALLOWED_DOMAINS` a semicolon (`;`) separated list of URLs disallowed since the user does not accept the agreement.  
-  Each space before and/or after each URL will be removed.  
+  Each space before and/or after each URL will be removed.
   **Note:** if the domain start by a dot (eg. `.google.com`) then all the related subdomains will be included in the temporary blacklist.
+  
 * `EUCOOKIELAW_LOOK_IN_TAGS` a pipe (`|`) separated list of tags where to search for the domains to block.   
   If not specified, the deafault tags are `iframe`. `script`, `link`.
+  
 * `EUCOOKIELAW_LOOK_IN_SCRIPTS` a boolean value, if `true` the URLs defined in `EUCOOKIELAW_DISALLOWED_DOMAINS` will be searched in the `<script>...</script>` tags too.
+
+* `EUCOOKIELAW_SEARCHBOT_AS_HUMAN` if `true` the search engines will be threated as humans (same contents, to avoid accidental [cloacking](https://en.wikipedia.org/wiki/Cloaking) contents).
+
+* `EUCOOKIELAW_ALLOWED_COOKIES` the list (**must be a comma separated value**) of techincal cookies that the server is allowed to generate and that will not removed from headers.  
+  **TIP \#1:** You can use the `*` wildchar as suffix to intend all the cookies that starts with a specific value (eg. `__umt*` will mean `__umta`, `__umtc` and so on).  
+  **TIP \#2:** If you use just `*` all cookies generated by your Web Site are allowed.
+
+
+* `EUCOOKIELAW_AUTOSTART` if you want to invoke late the `ob_start` then you should define this constant to `true`. 
+  **NOTE:** If you set this option to `true` you need to invoke lately by your own the `buffering` class method. 
+
+* `EUCOOKIELAW_DISABLED` a boolean value, if `true` the class `EUCookieLawHeader` will not be instantiated when you include
+  the `eucookielaw-cache.php` in your PHP scripts.
+  
 * `EUCOOKIELAW_DEBUG` a boolean value, if `true` the HTML output will report before each replacement the rule applied and at the beginning of the file it will show all the applied rules.  
   **Important** do not keep it enabled on production environment.  
   **Note:** in the beginning of your HTML file you can see `<!-- (EUCookieLaw Debug Enabled) -->` message followed by some other details. 
@@ -255,6 +319,28 @@ If you find this script useful, and since I've noticed that nobody did this scri
 I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest).   :)
 
 # Changelog
+
+## 2.0
+* **NEW:** [\WP\] Full compliant with any cache plugin (actually successfully tested with **WP Super Cache**, **W3 Total Cache**, **Zen Cache**)
+* **NEW:** The banner is now visible either with and without javascript enabled.
+* **NEW:** User consent whenever he clicks on an element of the page (Issue [#12](https://github.com/diegolamonica/EUCookieLaw/issues/12))
+* **NEW:** You can list the allowed cookies before consent (aka *Technical Cookies*). This solves the issue [#15](https://github.com/diegolamonica/EUCookieLaw/issues/15)
+* **NEW:** Now Google Analytics is able to write cookies via JavaScript (if configured) (Issue [#15](https://github.com/diegolamonica/EUCookieLaw/issues/15))
+* **NEW:** \[WP\] You can enable/disable the banner on frontend (Issue [#20](https://github.com/diegolamonica/EUCookieLaw/issues/20))
+* **NEW:** \[WP\] You can enable/disable the banner on the login page (Issue [#21](https://github.com/diegolamonica/EUCookieLaw/issues/21))
+* **NEW:** You can set the "reload on scroll" (Issue [#26](https://github.com/diegolamonica/EUCookieLaw/issues/26))
+* **NEW:** \[WP\] Added the WPML XML Configuration File for a better WPML compatibility.
+* **IMPROVEMENT:** \[WP\] Lack of documentation on certain admin fields (Issue [#27](https://github.com/diegolamonica/EUCookieLaw/issues/27))
+* **IMPROVEMENT:** Most of PHP Code was completely refactored from the ground to improve performance and readability.
+* **BUGFIX:** \[WP\] NextGenGallery conflict resolved (Issue [#31](https://github.com/diegolamonica/EUCookieLaw/issues/31))
+* **BUGFIX:** \[WP\] QuickAdsense conflict resolved (Issue [#36](https://github.com/diegolamonica/EUCookieLaw/issues/36) and  [#32](https://github.com/diegolamonica/EUCookieLaw/issues/32) )
+* **BUGFIX:** \[WP\] Revolution Slider conflict resolved (Issue [#37](https://github.com/diegolamonica/EUCookieLaw/issues/37))
+* **BUGFIX:** Page URL changes after reload (Issue [#38](https://github.com/diegolamonica/EUCookieLaw/issues/38))
+* **BUGFIX:** Scroll on tablet does not work  (Issue [#40](https://github.com/diegolamonica/EUCookieLaw/issues/40))
+* **BUGFIX:** Invalid Calling Object in Internet Explorer 9 and Safari was resolved  (Issue [#41](https://github.com/diegolamonica/EUCookieLaw/issues/41))
+* updated translation files
+* updated documentation
+* updated the version number
 
 ## 1.5
 

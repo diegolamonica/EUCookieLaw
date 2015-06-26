@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 1.5
+Stable tag: 1.5.1
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -31,12 +31,43 @@ To get detailed informations about the plugin go to https://github.com/diegolamo
 
 == Installation ==
 
-For manual installation just download the zip file then upload via the WordPress plugin installer page or extract files
-in a local directory then upload the whole directory under `/wp-content/plugins/`.
+For manual installation using WordPress plugin installer:
+* download the zip file
+* upload via the WordPress plugin installer page
+* Activate the plugin
+
+For manual installation via FTP
+* extract files in a local directory
+* upload through FTP the whole directory contents under `/wp-content/plugins/eucookielaw`.
+* Goto plugin administration panel
+* Activate the plugin
 
 == Changelog ==
 
-== 1.5 ==
+= 2.0 =
+
+* **NEW:** [\WP\] Full compliant with any cache plugin (actually successfully tested with **WP Super Cache**, **W3 Total Cache**, **Zen Cache**)
+* **NEW:** The banner is now visible either with and without javascript enabled.
+* **NEW:** User consent whenever he clicks on an element of the page (Issue [#12](https://github.com/diegolamonica/EUCookieLaw/issues/12))
+* **NEW:** You can list the allowed cookies before consent (aka *Technical Cookies*). This solves the issue [#15](https://github.com/diegolamonica/EUCookieLaw/issues/15)
+* **NEW:** Now Google Analytics is able to write cookies via JavaScript (if configured) (Issue [#15](https://github.com/diegolamonica/EUCookieLaw/issues/15))
+* **NEW:** \[WP\] You can enable/disable the banner on frontend (Issue [#20](https://github.com/diegolamonica/EUCookieLaw/issues/20))
+* **NEW:** \[WP\] You can enable/disable the banner on the login page (Issue [#21](https://github.com/diegolamonica/EUCookieLaw/issues/21))
+* **NEW:** You can set the "reload on scroll" (Issue [#26](https://github.com/diegolamonica/EUCookieLaw/issues/26))
+* **NEW:** \[WP\] Added the WPML XML Configuration File for a better WPML compatibility.
+* **IMPROVEMENT:** \[WP\] Lack of documentation on certain admin fields (Issue [#27](https://github.com/diegolamonica/EUCookieLaw/issues/27))
+* **IMPROVEMENT:** Most of PHP Code was completely refactored from the ground to improve performance and readability.
+* **BUGFIX:** \[WP\] NextGenGallery conflict resolved (Issue [#31](https://github.com/diegolamonica/EUCookieLaw/issues/31))
+* **BUGFIX:** \[WP\] QuickAdsense conflict resolved (Issue [#36](https://github.com/diegolamonica/EUCookieLaw/issues/36) and  [#32](https://github.com/diegolamonica/EUCookieLaw/issues/32) )
+* **BUGFIX:** \[WP\] Revolution Slider conflict resolved (Issue [#37](https://github.com/diegolamonica/EUCookieLaw/issues/37))
+* **BUGFIX:** Page URL changes after reload (Issue [#38](https://github.com/diegolamonica/EUCookieLaw/issues/38))
+* **BUGFIX:** Scroll on tablet does not work  (Issue [#40](https://github.com/diegolamonica/EUCookieLaw/issues/40))
+* **BUGFIX:** Invalid Calling Object in Internet Explorer 9 and Safari was resolved  (Issue [#41](https://github.com/diegolamonica/EUCookieLaw/issues/41))
+* updated translation files
+* updated documentation
+* updated the version number
+
+= 1.5 =
 
 This update introduces several improvements, features and bugfixes. For a detailed information about the new release see
 the [documentation page](https://github.com/diegolamonica/EUCookieLaw/) and the [Milestone 1.5](https://github.com/diegolamonica/EUCookieLaw/issues?q=milestone%3A1.5+is%3Aclosed)

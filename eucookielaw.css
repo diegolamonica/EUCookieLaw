@@ -14,11 +14,12 @@
     border-radius: 0 0 1em 1em;
 
 }
+.eucookielaw-banner.fixedon-static{
+    position: static;
+}
 
 body.admin-bar .eucookielaw-banner.fixedon-top{
     top: 32px;
-    border-radius: 1em 1em 0 0;
-
 }
 .eucookielaw-banner.fixedon-bottom{
     bottom: 0;
@@ -73,4 +74,70 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
 .eucookielaw-banner .well p.banner-agreement-buttons a.agree-button{
     background-color: #aaff44;
     color: #444;
+}
+
+/* Light Theme */
+.eucookielaw-banner.light{
+    font-size: 75%;
+    background-color: #eee;
+    color: #444;
+}
+
+.eucookielaw-banner.light .well{
+    background-color: #eee;
+    color: #444;
+}
+
+.eucookielaw-banner.light a{
+    color: #800;
+}
+.eucookielaw-banner.light .well p.banner-agreement-buttons{
+    border-top: 0;
+    margin: 0;
+}
+
+    .eucookielaw-banner.light .well p.banner-agreement-buttons a.btn{
+        border: 0;
+        text-decoration: underline;
+        background-color: transparent;
+        padding: 0;
+        margin: 0 0.3em;
+    }
+
+/* Grass Theme */
+.eucookielaw-banner.grass{
+    font-size: 1em;
+    background-color: #eee;
+    color: #444;
+}
+
+.eucookielaw-banner.grass .well{
+    background-color: #efc;
+    color: #264;
+}
+
+.eucookielaw-banner.grass a{
+    color: #486;
+}
+.eucookielaw-banner.grass .well p.banner-agreement-buttons{
+    border-top: 0;
+    margin: 0;
+}
+
+.eucookielaw-banner.grass .well p.banner-agreement-buttons a.btn{
+    color: #080;
+    border: 0;
+    text-decoration: underline;
+    background-color: transparent;
+    padding: 0;
+    margin: 0 0.3em;
+}
+.eucookielaw-banner .well p.banner-agreement-buttons a.disagree-button{
+    color: #800;
+}
+
+@media screen and (max-width: 640px){
+    .eucookielaw-banner{
+        font-size: 50%;
+    }
 }
