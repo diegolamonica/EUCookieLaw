@@ -320,6 +320,11 @@ I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_dona
 
 # Changelog
 
+## 2.0.2
+* **CRITICAL**: 
+Most of WordPress sites uses a FTP settings for writing files. Used native `file_get_contents` and `file_put_contents` 
+to write data into some files for a better user experience.
+
 ## 2.0
 * **NEW:** [\WP\] Full compliant with any cache plugin (actually successfully tested with **WP Super Cache**, **W3 Total Cache**, **Zen Cache**)
 * **NEW:** The banner is now visible either with and without javascript enabled.
