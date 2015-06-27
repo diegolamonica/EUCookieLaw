@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 2.0.2
+Stable tag: 2.1.0
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -42,7 +42,21 @@ For manual installation via FTP
 * Goto plugin administration panel
 * Activate the plugin
 
+== Screenshots ==
+
+1. The configuration page
+
 == Changelog ==
+
+= 2.1.0 =
+
+* **BUGFIX**: when PHP does not have gzdecode the method is implemented on needs.
+* **BUGFIX**: Internet Explorer and some mobile Browser does not recognize the `instance` variable as `EUCookieLaw` object causing a bad banner behavior.
+* **BUGFIX**: \[WP\] NextGenGallery has some weird behavior sometimes (skipped to load the locker if it is a NGG URL.
+* **IMPROVEMENT**: \[WP\] The plugin now tries to write into `wp-config.php` only if there is another cache plugin enabled on the site.
+* **IMPROVEMENT**: EUCookieLaw related PHP Warnings threated as required
+* updated documentation
+* updated the version number
 
 = 2.0.2 =
 

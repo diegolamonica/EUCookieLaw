@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.0.2
+ * @version 2.1.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -17,7 +17,7 @@ Class EUCookieLaw{
 	const TEXTDOMAIN        = 'EUCookieLaw';
 	const CUSTOMDOMAIN      = 'EUCookieLawCustom';
 	const MENU_SLUG	        = 'EUCookieLaw';
-	const VERSION           = '2.0.2';
+	const VERSION           = '2.1.0';
 	const CSS               = 'EUCookieLaw_css';
 	const CUSTOMCSS         = 'EUCookieLaw_css_custom';
 	const JS                = 'EUCookieLaw_js';
@@ -100,11 +100,13 @@ Class EUCookieLaw{
 		$wpConfigFile = ABSPATH.'wp-config.php';
 		$response = self::WPC_FILE_THE_SAME;
 
+		if(file_exists(WP_CONTENT_DIR.'cache/'))
+
 		if(!file_exists($wpConfigFile)){
 			$response = self::WPC_FILE_NOT_FOUND;
 		}else{
 
-			$fileContent = file_get_contents($wpConfigFile);
+			$fileContent = @file_get_contents($wpConfigFile);
 
 			if(strpos($fileContent, $wpConfigTemplate) === false ){
 				/*
@@ -141,7 +143,7 @@ Class EUCookieLaw{
 			'ZENC_DIR'  => WP_CONTENT_DIR .'/cache/zencache',
 		);
 
-		if ( ! $template = file_get_contents(dirname(__FILE__) . '/templates/'. $file ) ){
+		if ( ! $template = @file_get_contents(dirname(__FILE__) . '/templates/'. $file ) ){
 			# error_log("unable to read $file");
 			return false;
 
@@ -229,7 +231,7 @@ Class EUCookieLaw{
 		}
 
 
-		if(!file_put_contents( ABSPATH.'wp-config.php', implode("",$newWPConfig) )){
+		if(!@file_put_contents( ABSPATH.'wp-config.php', implode("",$newWPConfig) )){
 			$this->notifyMessage( sprintf(
 				__(self::ERR_MSG_CHECK_PERMS_OR_DIY, self::TEXTDOMAIN),
 				ABSPATH.'wp-config.php'), 'error',
@@ -246,9 +248,9 @@ Class EUCookieLaw{
 	private function updateHtaccess($directory){
 		$template = $this->getTemplateFile('htaccess_fragment.txt');
 
-		if( $htaccess = file_get_contents($directory.'/.htaccess') ){
+		if( $htaccess = @file_get_contents($directory.'/.htaccess') ){
 
-			if ( (strpos($htaccess, $template)!==false)  || file_put_contents( $directory . '/.htaccess', $htaccess.$template ) ) {
+			if ( (strpos($htaccess, $template)!==false)  || @file_put_contents( $directory . '/.htaccess', $htaccess.$template ) ) {
 
 				$this->notifyMessage( sprintf(
 					__( self::ERR_MSG_FILE_UPDATED, self::TEXTDOMAIN ),
@@ -280,7 +282,7 @@ Class EUCookieLaw{
 		$phpFile = $directory .'/EUCookieCache.php';
 
 		$template = $this->getTemplateFile('EUCookieCache.php');
-		if( !file_put_contents( $phpFile, $template ) ){
+		if( !@file_put_contents( $phpFile, $template ) ){
 			$this->notifyMessage(
 				sprintf(
 					__('Unable to write the file <code>%s</code>', self::TEXTDOMAIN) . '<br />' .
@@ -316,9 +318,13 @@ Class EUCookieLaw{
 		 */
 	}
 
+	private function hasCache(){
+		return (file_exists(WP_CONTENT_DIR . '/cache') && is_dir(WP_CONTENT_DIR . '/cache'));
+	}
+
 	private function updateIniFile(){
 
-		if(file_exists(WP_CONTENT_DIR . '/cache') && is_dir(WP_CONTENT_DIR . '/cache')) {
+		if( $this->hasCache() ) {
 
 
 
@@ -348,7 +354,7 @@ Class EUCookieLaw{
 				$config .= $key . '="' . str_replace( '"', '""', $value ) . "\"\n";
 			}
 
-			if ( file_put_contents( $file, $config ) ) {
+			if ( @file_put_contents( $file, $config ) ) {
 				$this->notifyMessage( sprintf(
 						__( self::ERR_MSG_FILE_UPDATED, self::TEXTDOMAIN ),
 						$file )
@@ -369,10 +375,11 @@ Class EUCookieLaw{
 	public function writeConfig(){
 
 		$this->updateOptions();
-
-		$this->updateWPConfig();
-		$this->updateCacheDirectory();
-		$this->updateIniFile();
+		if( $this->hasCache() ) {
+			$this->updateWPConfig();
+			$this->updateCacheDirectory();
+			$this->updateIniFile();
+		}
 
 	}
 
@@ -463,10 +470,15 @@ Class EUCookieLaw{
 		wp_register_script(self::JS, plugins_url('/EUCookieLaw.js', __FILE__) , array(), self::VERSION, false);
 		wp_register_script(self::WPJS, plugins_url('/wpEUCookieLaw.js', __FILE__) , array(self::JS), self::VERSION, false);
 		wp_register_style(self::CSS, plugins_url('/eucookielaw.css', __FILE__), array(), self::VERSION, 'screen');
+
+		$customCSSURL = WP_PLUGIN_URL .'/' . self::CUSTOMDOMAIN . '/eucookielaw.css';
 		if(file_exists( WP_PLUGIN_DIR .'/' . self::CUSTOMDOMAIN . '/eucookielaw.css' ) ){
-			wp_register_style(self::CUSTOMCSS, WP_PLUGIN_URL .'/' . self::CUSTOMDOMAIN . '/eucookielaw.css', array(self::CSS), self::VERSION, 'screen');
+			error_log("Custom CSS '$customCSSURL' correctly attacched to the page!");
+			wp_register_style(self::CUSTOMCSS, $customCSSURL, array(self::CSS), self::VERSION, 'screen');
 		}else{
-			# error_log("Custom script does not exists");
+			if( get_option(self::OPT_DEBUG, 'n') == 'y'){
+				error_log("Custom CSS '$customCSSURL' does not exists or not reachable!");
+			}
 		}
 
 
@@ -510,7 +522,7 @@ Class EUCookieLaw{
 				'remember'      => ($rememberChoice == 'y'),
 				'cookieList'    => $whitelist,
 				'classes'       => $style,
-				'id'            => 'eucookielaw-in-html',
+			//	'id'            => 'eucookielaw-in-html',
 
 			);
 

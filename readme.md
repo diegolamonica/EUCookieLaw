@@ -88,12 +88,11 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
   use a synchronous mode to show a dialog (eg. `confirm` method) the `showAgreement` must return `true` if the user have 
   accepted the agreement, in all other cases (user rejected the agreement or in asynchronous mode) it must return `false`.
 
-* `agreeOnScroll` if `true`, when the user will scroll the page, then the agreement is implicitly accepted. The default value is `false`.  
-  **Note:** if `agreeOnScroll` is setted to `true`, the `reload` option has no effect. 
+* `agreeOnScroll` if `true`, when the user will scroll the page, then the agreement is implicitly accepted. The default value is `false`.
 
 * `agreeOnClick` if `true`, the user express its conesnt by clicking wherever on the page (but outside the banner).
 
-Once `UECookieLaw` is initialized, you can access some useful methods in your JavaScript:
+Once `EUCookieLaw` is initialized, you can access some useful methods in your JavaScript:
 
 * `enableCookies` enables the site to store cookies
 
@@ -319,6 +318,13 @@ If you find this script useful, and since I've noticed that nobody did this scri
 I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest).   :)
 
 # Changelog
+
+## 2.1.0
+* **BUGFIX**: when PHP does not have gzdecode the method is implemented on needs.
+* **BUGFIX**: Internet Explorer and some mobile Browser does not recognize the `instance` variable as `EUCookieLaw` object causing a bad banner behavior.
+* **BUGFIX**: \[WP\] NextGenGallery has some weird behavior sometimes (skipped to load the locker if it is a NGG URL.
+* **IMPROVEMENT**: \[WP\] The plugin now tries to write into `wp-config.php` only if there is another cache plugin enabled on the site.
+* **IMPROVEMENT**: EUCookieLaw related PHP Warnings threated as required
 
 ## 2.0.2
 * **CRITICAL**: 

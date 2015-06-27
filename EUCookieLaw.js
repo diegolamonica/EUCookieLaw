@@ -26,7 +26,13 @@ var EUCookieLaw = (function (doc) {
 	};
 
 	var buildBanner = function () {
-			if(theBannerId!='' && doc.getElementById(theBannerId)){
+
+			var theHTMLBaner = doc.querySelector('#eucookielaw-in-html');
+			if(theBannerId!= 'eucookielaw-in-html' && theHTMLBaner){
+				theHTMLBaner.parentNode.removeChild(theHTMLBaner);
+			}
+
+			if(theBannerId!='' && doc.querySelector('#'+ theBannerId)){
 
 			}else {
 
@@ -140,10 +146,11 @@ var EUCookieLaw = (function (doc) {
 		body;
 	return function EUCookieLaw(options) {
 
-		if (instance instanceof EUCookieLaw) return instance;
+		if (instance != null) return instance;
 
 		settings = applySettings(options);
 		if(settings.id) theBannerId = settings.id;
+
 		instance = this;
 
 		var onAgree = function(){
