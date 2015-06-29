@@ -340,7 +340,7 @@ I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_dona
 
 # Changelog
 
-## 2.1.1
+## 2.1.2
 * **IMPROVEMENT**: If not defined the `EUCOOKIELAW_BANNER_DISAGREE_BUTTON` the disagree button will not be shown on the page.
 * **IMPROVEMENT**: Removed the session/local storage in favor of technical session cookie for storing the user rejection
 * **IMPROVEMENT**: Improved the way to detect if the cookie is approved or rejected

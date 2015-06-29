@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.1.1
+ * @version 2.1.2
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -135,7 +135,7 @@ if(!function_exists('gzdecode')) {
 
 class EUCookieLawHeader{
 
-	const VERSION = '2.1.1';
+	const VERSION = '2.1.2';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
