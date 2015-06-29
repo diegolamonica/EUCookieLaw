@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.1.0
+ * @version 2.1.1
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -135,7 +135,7 @@ if(!function_exists('gzdecode')) {
 
 class EUCookieLawHeader{
 
-	const VERSION = '2.1.0';
+	const VERSION = '2.1.1';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
@@ -256,6 +256,11 @@ class EUCookieLawHeader{
 			$newAttr .= ' data-eucookielaw-attr="' . $items[2] . '"';
 
 			$replaced = str_replace( $items[4], 'about:blank', $items[0] );
+
+			// Firefox issue https://bugzilla.mozilla.org/show_bug.cgi?id=356558
+			if(strtolower( trim($items[1]) ) == 'iframe'){
+				$newAttr .= 'name="' . date('YmdHis') .'" ';
+			}
 
 			$replaced = str_replace( '<' . $items[1], '<' . $items[1] . $newAttr, $replaced );
 			$buffer   = str_replace( $items[0], ( EUCOOKIELAW_DEBUG ? ( '<!-- (rule: ' . $disallowedDomain . ' - replaced -->' ) : '' ) . $replaced, $buffer );
@@ -450,24 +455,28 @@ class EUCookieLawHeader{
 
 			$theTitle = EUCOOKIELAW_BANNER_TITLE;
 			$theMessage = EUCOOKIELAW_BANNER_DESCRIPTION;
-			$disagree = EUCOOKIELAW_BANNER_DISAGREE_BUTTON;
 			$agree = EUCOOKIELAW_BANNER_AGREE_BUTTON;
 			$additionalClass = EUCOOKIELAW_BANNER_ADDITIONAL_CLASS;
 			$agreeLink = EUCOOKIELAW_BANNER_AGREE_LINK;
-			$disagreeLink = EUCOOKIELAW_BANNER_DISAGREE_LINK;
+			if(defined('EUCOOKIELAW_BANNER_DISAGREE_BUTTON') && EUCOOKIELAW_BANNER_DISAGREE_BUTTON!='') {
+				$disagree = EUCOOKIELAW_BANNER_DISAGREE_BUTTON;
+				$disagreeLink = EUCOOKIELAW_BANNER_DISAGREE_LINK;
+				$disagreeHTML = "<a href=\"$disagreeLink\" class=\"disagree-button btn btn-danger\" onclick=\"(new EUCookieLaw()).reject(); return false;\">$disagree</a>";
+			 }else{
+				$disagreeHTML = "";
+			}
 			$htmlTemplate = <<<EOT
 			<div class="eucookielaw-banner $additionalClass" id="eucookielaw-in-html">
 				<div class="well">
 					<h1 class="banner-title">$theTitle</h1>
 					<p class="banner-message">$theMessage</p>
 					<p class="banner-agreement-buttons text-right">
-						<a href="$disagreeLink" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject(); return false;">$disagree</a>
+						$disagreeHTML
 						<a href="$agreeLink" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies(); return false;">$agree</a>
 					</p>
 				</div>
 			</div>
 EOT;
-
 			if(!$this->isRejected) {
 				$buffer = preg_replace( '#(<body[^>]*?>)#ism', '$1' . $htmlTemplate, $buffer );
 			}

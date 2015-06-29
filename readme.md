@@ -219,6 +219,27 @@ If you want to block specific domains you can define in your script (before incl
   **Note:** in the beginning of your HTML file you can see `<!-- (EUCookieLaw Debug Enabled) -->` message followed by some other details. 
   Those messages are useful to understand what exactly is happening in your site.
 
+* `EUCOOKIELAW_BANNER_ADDITIONAL_CLASS` a string where to define the custom classes applied to the banner. 
+
+* `EUCOOKIELAW_BANNER_TITLE` the title to show on the banner.
+
+* `EUCOOKIELAW_BANNER_DESCRIPTION` the description to show into the banner.
+
+* `EUCOOKIELAW_BANNER_AGREE_BUTTON` the label on the agree button
+
+* `EUCOOKIELAW_BANNER_DISAGREE_BUTTON` the label on the disagree button. If not defined or defined as empty string then the disagree button will not be shown on the page.
+
+* `EUCOOKIELAW_BANNER_AGREE_LINK` the link to apply the consent. To let the script to manage by its own the consent, this link should contain the argument **`__eucookielaw=agree`**.  
+  this mean that if the link is `http://example.com/my-page.html?arg1=a&arg2=b` then you should append the suggested argument as follows: `http://example.com/my-page.html?arg1=a&arg2=b&__eucookielaw=agree`.
+   
+* `EUCOOKIELAW_BANNER_DISAGREE_LINK` the link to reject the consent. To let the script to manage by its own the rejection, this link should contain the argument **`__eucookielaw=disagree`**.  
+  this mean that if the link is `http://example.com/my-page.html?arg1=a&arg2=b` then you should append the suggested argument as follows: `http://example.com/my-page.html?arg1=a&arg2=b&__eucookielaw=disagree`.
+
+### How to manage by your own the rejection
+
+While WordPress has its own shortcode to manage the rejection button, in the standalone version you should produce a link with a specific argument into the querystring: `__eucookielaw=reconsider`.
+
+
 ## Using EUCookieLaw into WordPress
 
 The plugin is available on [WordPress plugin directory](http://wordpress.org/plugins/eucookielaw/).
@@ -318,6 +339,18 @@ If you find this script useful, and since I've noticed that nobody did this scri
 I'd like to receive [a donation](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest).   :)
 
 # Changelog
+
+## 2.1.1
+* **IMPROVEMENT**: If not defined the `EUCOOKIELAW_BANNER_DISAGREE_BUTTON` the disagree button will not be shown on the page.
+* **IMPROVEMENT**: Removed the session/local storage in favor of technical session cookie for storing the user rejection
+* **IMPROVEMENT**: Improved the way to detect if the cookie is approved or rejected
+* **IMPROVEMENT**: Uniformed the way to write the technical cookie `__eucookielaw`
+* **IMPROVEMENT**: Improved the way how the banner is removed
+* **IMPROVEMENT**: Updated missing pieces in documentation.
+* **IMPROVEMENT**: Optimized behavior when asked reload of contents after consent.
+* **BUGFIX**: Resolved an [anicient related firefox issue](https://bugzilla.mozilla.org/show_bug.cgi?id=356558)
+* updated the minor version number
+* updated documentation
 
 ## 2.1.0
 * **BUGFIX**: when PHP does not have gzdecode the method is implemented on needs.

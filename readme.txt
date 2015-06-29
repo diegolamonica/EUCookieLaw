@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,19 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+
+= 2.1.1 =
+
+* **IMPROVEMENT**: If not defined the `EUCOOKIELAW_BANNER_DISAGREE_BUTTON` the disagree button will not be shown on the page.
+* **IMPROVEMENT**: Removed the session/local storage in favor of technical session cookie for storing the user rejection
+* **IMPROVEMENT**: Improved the way to detect if the cookie is approved or rejected
+* **IMPROVEMENT**: Uniformed the way to write the technical cookie `__eucookielaw`
+* **IMPROVEMENT**: Improved the way how the banner is removed
+* **IMPROVEMENT**: Updated missing pieces in documentation.
+* **IMPROVEMENT**: Optimized behavior when asked reload of contents after consent.
+* **BUGFIX**: Resolved an [anicient related firefox issue](https://bugzilla.mozilla.org/show_bug.cgi?id=356558)
+* updated the minor version number
+* updated documentation
 
 = 2.1.0 =
 

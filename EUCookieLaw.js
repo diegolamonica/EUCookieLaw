@@ -1,7 +1,7 @@
 /**
  * EUCookieLaw: simple object to accomplish european law requirements about cookie transmission to clients
  * @class EUCookieLaw
- * @version 1.5
+ * @version 2.1.1
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica
@@ -25,13 +25,14 @@ var EUCookieLaw = (function (doc) {
 		}
 	};
 
-	var buildBanner = function () {
-
+	var removeHTMLBanner = function () {
 			var theHTMLBaner = doc.querySelector('#eucookielaw-in-html');
 			if(theBannerId!= 'eucookielaw-in-html' && theHTMLBaner){
 				theHTMLBaner.parentNode.removeChild(theHTMLBaner);
 			}
-
+		},
+		buildBanner = function () {
+			removeHTMLBanner();
 			if(theBannerId!='' && doc.querySelector('#'+ theBannerId)){
 
 			}else {
@@ -71,7 +72,8 @@ var EUCookieLaw = (function (doc) {
 
 			}
 		},
-		hasCookie = function(){ return /__eucookielaw=true/.test(doc.cookie.toString()); },
+		hasRejectedCookie = function(){ return /__eucookielaw=rejected/.test(doc.cookie.toString()); },
+		hasCookie = function(){ return /__eucookielaw=/.test(doc.cookie.toString()) && !hasRejectedCookie() },
 		applySettings = function(settings) {
 
 			for (var key in defaultSettings) {
@@ -84,15 +86,16 @@ var EUCookieLaw = (function (doc) {
 			}
 			return settings;
 		},
-		userStorage =   window.sessionStorage || // All browsers that supports sessionStorage uses it (is preferrable due the session rejection)
-						window.localStorage ||  // Browsers that does supports localStorage and not sessionStorage
-						{ setItem: function(){}, getItem: function (){}, removeItem: function(){ } }, // Older browsers that does not support any kind of local storage
-
+	/*
+	 userStorage =   window.sessionStorage || // All browsers that supports sessionStorage uses it (is preferrable due the session rejection)
+	 window.localStorage ||  // Browsers that does supports localStorage and not sessionStorage
+	 { setItem: function(){}, getItem: function (){}, removeItem: function(){ } }, // Older browsers that does not support any kind of local storage
+	 */
 		originalCookie = doc.cookie, // For future use
 		scrolled = false,
 		instance = null,
 		settings,
-		didAChoice = hasCookie() || userStorage.getItem('rejected'),
+		didAChoice = hasCookie() || hasRejectedCookie(), // userStorage.getItem('rejected'),
 		defaultSettings = {
 			id: false,
 			debug: false,
@@ -203,15 +206,22 @@ var EUCookieLaw = (function (doc) {
 
 		};
 
+		var writeInternalCookie = function( value, expires ){
+			if(expires === undefined) expires = '';
+			doc.cookie = "__eucookielaw=" + value
+						+ ";domain=" + window.location.host
+						+ ";path=" + settings.path
+						+ expires;
+		}
+
 		this.enableCookies = function () {
 			didAChoice = true;
-			userStorage.removeItem('rejected');
-
+			writeInternalCookie('', 'Thu, 01 Jan 1970 00:00:01 GMT');
 			settings.cookieEnabled = true;
 			settings.cookieRejected = false;
 			if (!isOriginal) {
 				delete doc.cookie;
-				onAgree();
+				if(!settings.reload) onAgree();
 				isOriginal = true;
 			}
 
@@ -222,12 +232,18 @@ var EUCookieLaw = (function (doc) {
 				if(settings.debug) console.log("Injected cookie expires on: ", expires);
 				expiresCookie = ";expires=" + expires.toGMTString();
 			}
-
-			doc.cookie = "__eucookielaw=true"
-						+ ";domain=" + window.location.host
-						+ ";path=" + settings.path
-						+ expiresCookie;
+			writeInternalCookie('true', expiresCookie);
 			removeBanner();
+
+
+			var allIframes = doc.querySelectorAll('iframe');
+			for(var iframeIndex in allIframes){
+				var singleIframe = allIframes[iframeIndex],
+					originalName = singleIframe.getAttribute('name');
+
+				singleIframe.setAttribute('name', Math.random());
+				singleIframe.setAttribute('name', originalName);
+			}
 
 			if(settings.reload) window.location.reload();
 
@@ -236,7 +252,10 @@ var EUCookieLaw = (function (doc) {
 			if(!hasCookie()){
 				if(settings.debug) console.log("Calling Reject");
 				didAChoice = true;
-				if(settings.remember) userStorage.setItem("rejected", true);
+				if(settings.remember){
+					writeInternalCookie('rejected');
+				}
+
 				settings.cookieRejected = true;
 				settings.cookieEnabled = false;
 				removeBanner();
@@ -245,11 +264,7 @@ var EUCookieLaw = (function (doc) {
 		};
 		this.reconsider = function(){
 
-			userStorage.removeItem('rejected');
-			doc.cookie = "__eucookielaw="
-				+ ";domain=" + window.location.host
-				+ ";path=" + settings.path
-				+ ';expires=Thu, 01 Jan 1970 00:00:01 GMT';
+			writeInternalCookie('', 'Thu, 01 Jan 1970 00:00:01 GMT');
 
 			scrolled = false;
 			didAChoice = false;
@@ -263,8 +278,10 @@ var EUCookieLaw = (function (doc) {
 		};
 
 		var removeBanner = function(){
+			removeHTMLBanner();
 			if(theBannerId!=''){
-				body.removeChild( doc.getElementById(theBannerId) );
+				var theBanner = doc.getElementById(theBannerId);
+				theBanner.parentNode.removeChild( theBanner );
 				theBannerId = '';
 			}
 		};
@@ -276,11 +293,15 @@ var EUCookieLaw = (function (doc) {
 				if ((doc.readyState === 'complete' || doc.readyState === 'interactive') && doc.body) {
 					body = doc.body;
 					previousScrollTop = getScrollTop();
-					if(!userStorage.getItem('rejected') && !hasCookie()){
+					if(!hasRejectedCookie() && !hasCookie()){
 						buildBanner();
 					} else{
-						instance.reject();
+						if(hasRejectedCookie()){
+							instance.reject();
+						}
+						removeBanner();
 					}
+
 				} else {
 					setTimeout(waitReady, 100);
 				}
@@ -350,20 +371,24 @@ var EUCookieLaw = (function (doc) {
 					var cookiePart = cookie.split('='),
 						cookieAllowed = false;
 
-					for(var cookieIndex in settings.cookieList){
+					if(/^__eucookielaw$/, cookiePart[0]) {
+						cookieAllowed = true;
+					}else {
+						for (var cookieIndex in settings.cookieList) {
 
-						var cookieKey = settings.cookieList[cookieIndex],
-							lastChar = cookieKey.substr(-1),
-							regexString = "^" +
-								((lastChar == '*') ?
-									(cookieKey.substr(0, cookieKey.length-1) + '.*'):
-									cookieKey) +
-								"$",
-							regexCookie = new RegExp(regexString);
-						if (settings.debug) console.log("Checking if the cookie '" + cookiePart[0] + "' matches the value defined in " + cookieKey + " (rule: " + regexString + ")");
-						if(regexCookie.test(cookiePart[0]) ){
-							cookieAllowed = true;
-							break;
+							var cookieKey = settings.cookieList[cookieIndex],
+								lastChar = cookieKey.substr(-1),
+								regexString = "^" +
+									((lastChar == '*') ?
+										(cookieKey.substr(0, cookieKey.length - 1) + '.*') :
+										cookieKey) +
+									"$",
+								regexCookie = new RegExp(regexString);
+							if (settings.debug) console.log("Checking if the cookie '" + cookiePart[0] + "' matches the value defined in " + cookieKey + " (rule: " + regexString + ")");
+							if (regexCookie.test(cookiePart[0])) {
+								cookieAllowed = true;
+								break;
+							}
 						}
 					}
 					if(cookieAllowed){
