@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 2.1.3
+Stable tag: 2.1.4
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -48,7 +48,7 @@ For manual installation via FTP
 
 == Changelog ==
 
-= 2.1.3 =
+= 2.1.4 =
 
 * **IMPROVEMENT**: If not defined the `EUCOOKIELAW_BANNER_DISAGREE_BUTTON` the disagree button will not be shown on the page.
 * **IMPROVEMENT**: Removed the session/local storage in favor of technical session cookie for storing the user rejection
