@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.1.2
+ * @version 2.1.3
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -17,7 +17,7 @@ Class EUCookieLaw{
 	const TEXTDOMAIN        = 'EUCookieLaw';
 	const CUSTOMDOMAIN      = 'EUCookieLawCustom';
 	const MENU_SLUG	        = 'EUCookieLaw';
-	const VERSION           = '2.1.2';
+	const VERSION           = '2.1.3';
 	const CSS               = 'EUCookieLaw_css';
 	const CUSTOMCSS         = 'EUCookieLaw_css_custom';
 	const JS                = 'EUCookieLaw_js';
@@ -467,45 +467,47 @@ Class EUCookieLaw{
 	}
 
 	public function script(){
-		wp_register_script(self::JS, plugins_url('/EUCookieLaw.js', __FILE__) , array(), self::VERSION, false);
-		wp_register_script(self::WPJS, plugins_url('/wpEUCookieLaw.js', __FILE__) , array(self::JS), self::VERSION, false);
-		wp_register_style(self::CSS, plugins_url('/eucookielaw.css', __FILE__), array(), self::VERSION, 'screen');
-
-		$customCSSURL = WP_PLUGIN_URL .'/' . self::CUSTOMDOMAIN . '/eucookielaw.css';
-		if(file_exists( WP_PLUGIN_DIR .'/' . self::CUSTOMDOMAIN . '/eucookielaw.css' ) ){
-			error_log("Custom CSS '$customCSSURL' correctly attacched to the page!");
-			wp_register_style(self::CUSTOMCSS, $customCSSURL, array(self::CSS), self::VERSION, 'screen');
-		}else{
-			if( get_option(self::OPT_DEBUG, 'n') == 'y'){
-				error_log("Custom CSS '$customCSSURL' does not exists or not reachable!");
-			}
-		}
-
-
-		$bannerTitle    = get_option(self::OPT_TITLE, 'Banner title');
-		$bannerMessage  = get_option(self::OPT_MESSAGE, 'Banner message');
-		$bannerAgree    = get_option(self::OPT_AGREE, 'I agree');
-		$bannerDisagree = get_option(self::OPT_DISAGREE, 'I disagree') ;
-		$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
-		$agreeOnScroll  = get_option(self::OPT_AGREEONSCROLL, 'n');
-		$agreeOnClick   = get_option(self::OPT_AGREEONCLICK, 'n');
-		$fixedOn        = get_option(self::OPT_FIXED_ON, 'top');
-		$cookieDuration = get_option(self::OPT_COOKIE_EXPIRES, '365');
-		$debug          = get_option(self::OPT_DEBUG, 'n');
-		$reload         = get_option(self::OPT_RELOAD, 'y');
-		$rememberChoice = get_option(self::OPT_REMEMBER_CHOICE, 'y');
-
 		$enabled        = get_option(self::OPT_ENABLED,'n');
 		$hasEnabled     = get_option(self::OPT_ENABLED,false);
 		$hasTitle       = get_option(self::OPT_TITLE, false);
-		$whitelist      = get_option(self::OPT_WHITELIST_COOKIES, array());
-		$style          = get_option(self::OPT_BANNER_STYLE, '');
 		if(!$hasEnabled && $hasTitle) $enabled = 'y';
 
-		// Localize the script with new data
-		# echo "The css style is: $style"; exit();
-
 		if ( $enabled =='y' ) {
+			wp_register_script(self::JS, plugins_url('/EUCookieLaw.js', __FILE__) , array(), self::VERSION, false);
+			wp_register_script(self::WPJS, plugins_url('/wpEUCookieLaw.js', __FILE__) , array(self::JS), self::VERSION, false);
+			wp_register_style(self::CSS, plugins_url('/eucookielaw.css', __FILE__), array(), self::VERSION, 'screen');
+
+			$customCSSURL = WP_PLUGIN_URL .'/' . self::CUSTOMDOMAIN . '/eucookielaw.css';
+			if(file_exists( WP_PLUGIN_DIR .'/' . self::CUSTOMDOMAIN . '/eucookielaw.css' ) ){
+				error_log("Custom CSS '$customCSSURL' correctly attacched to the page!");
+				wp_register_style(self::CUSTOMCSS, $customCSSURL, array(self::CSS), self::VERSION, 'screen');
+			}else{
+				if( get_option(self::OPT_DEBUG, 'n') == 'y'){
+					error_log("Custom CSS '$customCSSURL' does not exists or not reachable!");
+				}
+			}
+
+
+			$bannerTitle    = get_option(self::OPT_TITLE, 'Banner title');
+			$bannerMessage  = get_option(self::OPT_MESSAGE, 'Banner message');
+			$bannerAgree    = get_option(self::OPT_AGREE, 'I agree');
+			$bannerDisagree = get_option(self::OPT_DISAGREE, 'I disagree') ;
+			$titleTag       = get_option(self::OPT_TITLE_TAG, 'h1');
+			$agreeOnScroll  = get_option(self::OPT_AGREEONSCROLL, 'n');
+			$agreeOnClick   = get_option(self::OPT_AGREEONCLICK, 'n');
+			$fixedOn        = get_option(self::OPT_FIXED_ON, 'top');
+			$cookieDuration = get_option(self::OPT_COOKIE_EXPIRES, '365');
+			$debug          = get_option(self::OPT_DEBUG, 'n');
+			$reload         = get_option(self::OPT_RELOAD, 'y');
+			$rememberChoice = get_option(self::OPT_REMEMBER_CHOICE, 'y');
+
+			$whitelist      = get_option(self::OPT_WHITELIST_COOKIES, array());
+			$style          = get_option(self::OPT_BANNER_STYLE, '');
+
+			// Localize the script with new data
+			# echo "The css style is: $style"; exit();
+
+
 			$configuration = array(
 				'showBanner'    => true,
 				'reload'        => ( $reload == 'y' ),

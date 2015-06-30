@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.1.2
+ * @version 2.1.3
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -60,8 +60,8 @@ if(!function_exists('gzdecode')) {
 			$headerlen += $filenamelen + 1;
 		}
 
-		$commentlen = 0;
-		$comment    = "";
+		// $commentlen = 0;
+		// $comment    = "";
 		if ( $flags & 16 ) {
 			// C-style string COMMENT data in header
 			if ( $len - $headerlen - 1 < 8 ) {
@@ -75,7 +75,7 @@ if(!function_exists('gzdecode')) {
 			$headerlen += $commentlen + 1;
 		}
 
-		$headercrc = "";
+		// $headercrc = "";
 		if ( $flags & 1 ) {
 			// 2-bytes (lowest order) of CRC32 on header present
 			if ( $len - $headerlen - 2 < 8 ) {
@@ -135,7 +135,7 @@ if(!function_exists('gzdecode')) {
 
 class EUCookieLawHeader{
 
-	const VERSION = '2.1.2';
+	const VERSION = '2.1.3';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
@@ -349,12 +349,10 @@ class EUCookieLawHeader{
 
 	public function buffering( $buffer ) {
 
-
-
 		! defined( 'EUCOOKIELAW_DISALLOWED_DOMAINS' ) && define( 'EUCOOKIELAW_DISALLOWED_DOMAINS', '' );
 		! defined( 'EUCOOKIELAW_LOOK_IN_SCRIPTS' ) && define( 'EUCOOKIELAW_LOOK_IN_SCRIPTS', false );
 		! defined( 'EUCOOKIELAW_DEBUG' ) && define( 'EUCOOKIELAW_DEBUG', false );
-		! defined( 'EUCOOKIELAW_LOOK_IN_TAGS' ) && define( 'EUCOOKIELAW_LOOK_IN_TAGS', 'iframe|script|link' );
+		! defined( 'EUCOOKIELAW_LOOK_IN_TAGS' ) && define( 'EUCOOKIELAW_LOOK_IN_TAGS', 'script|iframe|img|embed|param' );
 		! defined( 'EUCOOKIELAW_ALLOWED_COOKIES' ) && define( 'EUCOOKIELAW_ALLOWED_COOKIES', '' );
 
 		if(EUCOOKIELAW_DEBUG) error_log("buffering contents");

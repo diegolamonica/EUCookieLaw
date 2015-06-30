@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/diegolamonica/EUCookieLaw
  * Description: A simple WP solution to the European Cookie Law Issue
  * Author: Diego La Monica
- * Version: 2.1.2
+ * Version: 2.1.3
  * Author URI: http://diegolamonica.info
  * Text Domain: EUCookieLaw
  * Domain Path: /languages
