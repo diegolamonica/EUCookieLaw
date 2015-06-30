@@ -65,7 +65,7 @@ var EUCookieLaw = (function (doc) {
 				if (typeof(_get) == 'function') propObject['get'] = _get;
 
 				Object.defineProperty(object, prop, propObject);
-			} else {
+			} else if (object.__defineGetter__) {
 
 				if (typeof(_set) == 'function') object.__defineSetter__(prop, _set);
 				if (typeof(_get) == 'function') object.__defineGetter__(prop, _get);
