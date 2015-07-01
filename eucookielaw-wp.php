@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.1.3
+ * @version 2.2.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -17,7 +17,7 @@ Class EUCookieLaw{
 	const TEXTDOMAIN        = 'EUCookieLaw';
 	const CUSTOMDOMAIN      = 'EUCookieLawCustom';
 	const MENU_SLUG	        = 'EUCookieLaw';
-	const VERSION           = '2.1.3';
+	const VERSION           = '2.2.0';
 	const CSS               = 'EUCookieLaw_css';
 	const CUSTOMCSS         = 'EUCookieLaw_css_custom';
 	const JS                = 'EUCookieLaw_js';
@@ -47,6 +47,9 @@ Class EUCookieLaw{
 	const OPT_COOKIE_EXPIRES= 'eucookie_law_banner_cookie_expires';
 	const OPT_WHITELIST_COOKIES = 'eucookie_law_whitelist_cookies';
 	const OPT_DEBUG         = 'eucookie_law_debug';
+
+	const OPT_DEFAULT_IFRAME_SRC    = 'default_iframe_src';
+	const OPT_DEFAULT_SCRIPT_SRC    = 'default_script_src';
 
 	const COOKIE_NAME       = '__eucookielaw';
 
@@ -78,6 +81,8 @@ Class EUCookieLaw{
 
 			add_action( 'admin_notices', array( $this, 'notifyDifferences' ) );
 
+			require_once 'editor.php';
+			new EUCookieLawTinyMCE();
 
 			add_filter( 'admin_menu', array( $this, 'admin' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'adminScripts' ) );
@@ -326,8 +331,6 @@ Class EUCookieLaw{
 
 		if( $this->hasCache() ) {
 
-
-
 			$domains = get_option( self::OPT_3RDPDOMAINS );
 			$iniFile = array(
 
@@ -346,6 +349,9 @@ Class EUCookieLaw{
 				self::OPT_WHITELIST_COOKIES => get_option( self::OPT_WHITELIST_COOKIES ),
 				self::OPT_BOT_AS_HUMANS     => get_option( self::OPT_BOT_AS_HUMANS ),
 				self::OPT_BANNER_STYLE      => get_option( self::OPT_BANNER_STYLE, '' ),
+
+				self::OPT_DEFAULT_IFRAME_SRC=> get_option( self::OPT_DEFAULT_IFRAME_SRC, 'about:blank' ),
+				self::OPT_DEFAULT_SCRIPT_SRC=> get_option( self::OPT_DEFAULT_SCRIPT_SRC, 'about:blank' ),
 
 			);
 			$file    = WP_CONTENT_DIR . '/cache/eucookielaw.ini';
@@ -408,8 +414,6 @@ Class EUCookieLaw{
 			}
 		}
 
-
-
 	}
 
 	private function isLoginPage(){
@@ -454,8 +458,8 @@ Class EUCookieLaw{
 		return '<a class="btn btn-warning eucookielaw-reconsider-button" href="'.$url.'" onclick="(new EUCookieLaw()).reconsider(); return false;">' . __($label, self::CUSTOMDOMAIN) . '</a>';
 	}
 	public function block(  $content ){
-		$content = preg_replace('#(\r?\n)\[EUCookieLawBlock\](\r?\n)#', '<!-- EUCookieLaw:start -->', $content);
-		$content = preg_replace('#(\r?\n)\[/EUCookieLawBlock\](\r?\n)#', '<!-- EUCookieLaw:end -->', $content);
+		$content = preg_replace('#(\r?\n)?\[EUCookieLawBlock\](\r?\n)?#', '<!-- EUCookieLaw:start -->', $content);
+		$content = preg_replace('#(\r?\n)?\[/EUCookieLawBlock\](\r?\n)?#', '<!-- EUCookieLaw:end -->', $content);
 
 		return $content;
 
@@ -543,11 +547,11 @@ Class EUCookieLaw{
 	public function admin(){
 		add_menu_page(
 			"EU Cookie Law", "EU Cookie Law",
-			'read',
+			'activate_plugins',
 			self::MENU_SLUG,
 			array($this, 'about'));
-		add_submenu_page(self::MENU_SLUG, "All you need to know about EUCookieLaw", "About", "read", self::MENU_SLUG, array($this, 'about'));
-		add_submenu_page(self::MENU_SLUG, "EUCookieLaw Settings", "Settings", "read", self::MENU_SLUG.'-messages', array($this, 'messages'));
+		add_submenu_page(self::MENU_SLUG, "All you need to know about EUCookieLaw", "About", "activate_plugins", self::MENU_SLUG, array($this, 'about'));
+		add_submenu_page(self::MENU_SLUG, "EUCookieLaw Settings", "Settings", "activate_plugins", self::MENU_SLUG.'-messages', array($this, 'messages'));
 
 	}
 
@@ -726,6 +730,10 @@ Class EUCookieLaw{
 			update_option(self::OPT_ENABLEDONLOGIN, $_POST['enabled_on_login']);
 			update_option(self::OPT_BOT_AS_HUMANS,  $_POST['bot_as_humans']);
 			update_option(self::OPT_BANNER_STYLE,   $_POST['banner_style']);
+
+			update_option(self::OPT_DEFAULT_IFRAME_SRC,   $_POST['iframe_default_url']);
+			update_option(self::OPT_DEFAULT_SCRIPT_SRC,   $_POST['script_default_url']);
+
 		}
 	}
 
@@ -959,6 +967,9 @@ Class EUCookieLaw{
 		$cookieDuration = get_option(self::OPT_COOKIE_EXPIRES, 0);
 		$whitelist      = explode(",", get_option(self::OPT_WHITELIST_COOKIES, ''));
 
+		$iframeDefaultURL = get_option(self::OPT_DEFAULT_IFRAME_SRC, 'about:blank');
+		$scriptDefaultURL = get_option(self::OPT_DEFAULT_IFRAME_SRC, 'about:blank');
+
 		?>
 		<table class="form-table">
 			<tr>
@@ -1042,6 +1053,42 @@ Class EUCookieLaw{
 					<p>
 						<?php _e("If you enable this option, EUCookieLaw tries to look for the defined rules in the <code>script</code> elements of the page", self::TEXTDOMAIN); ?>
 					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="iframe_default_url"><?php _e("Replaced <code>iframe</code>s URL:", self::TEXTDOMAIN); ?></label></th>
+				<td>
+					<input name="iframe_default_url" type="text" id="iframe_default_url" value="<?php echo htmlspecialchars($iframeDefaultURL); ?>" class="regular-text">
+					<a class="button button-secondary" href="#iframe_default_url" data-set-url="about:blank"><?php _e("Empty page", self::TEXTDOMAIN); ?></a>
+					<a class="button button-secondary" href="#iframe_default_url" data-set-url="<?php echo plugins_url('blocked/default.html', __FILE__); ?>"><?php _e("Default page", self::TEXTDOMAIN); ?></a>
+					<?php
+					if(file_exists( WP_PLUGIN_DIR .'/' . self::CUSTOMDOMAIN . '/blocked' ) && is_dir( WP_PLUGIN_DIR .'/' . self::CUSTOMDOMAIN . '/blocked' )) {
+						?>
+						<a class="button button-secondary" href="#iframe_default_url"
+						   data-set-url="<?php echo WP_PLUGIN_URL . '/' . self::CUSTOMDOMAIN . '/blocked/default.html' ?>"><?php _e( "Custom page", self::TEXTDOMAIN ); ?></a>
+						<?php
+					}
+					?>
+
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="script_default_url"><?php _e("Replaced <code>scripts</code>s source:", self::TEXTDOMAIN); ?></label></th>
+				<td>
+					<input name="script_default_url" type="text" id="script_default_url" value="<?php echo htmlspecialchars($scriptDefaultURL); ?>" class="regular-text">
+					<a class="button button-secondary" href="#script_default_url" data-set-url="about:blank"><?php _e("Empty page", self::TEXTDOMAIN); ?></a>
+					<a class="button button-secondary" href="#script_default_url" data-set-url="<?php echo plugins_url('blocked/empty.js', __FILE__); ?>"><?php _e("Empty script", self::TEXTDOMAIN); ?></a>
+					<a class="button button-secondary" href="#script_default_url" data-set-url="<?php echo plugins_url('blocked/default.js', __FILE__); ?>"><?php _e("Default script", self::TEXTDOMAIN); ?></a>
+					<?php
+					if(file_exists( WP_PLUGIN_DIR .'/' . self::CUSTOMDOMAIN . '/blocked' ) && is_dir( WP_PLUGIN_DIR .'/' . self::CUSTOMDOMAIN . '/blocked' )) {
+						?>
+						<a class="button button-secondary" href="#script_default_url"
+						   data-set-url="<?php echo WP_PLUGIN_URL . '/' . self::CUSTOMDOMAIN . '/blocked/default.js' ?>"><?php _e( "Custom script", self::TEXTDOMAIN ); ?></a>
+						<?php
+					}
+					?>
+
+
 				</td>
 			</tr>
 			<tr>

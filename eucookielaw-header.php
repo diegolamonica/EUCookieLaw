@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.1.3
+ * @version 2.2.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -135,7 +135,7 @@ if(!function_exists('gzdecode')) {
 
 class EUCookieLawHeader{
 
-	const VERSION = '2.1.3';
+	const VERSION = '2.2.0';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
@@ -255,7 +255,21 @@ class EUCookieLawHeader{
 			$newAttr = ' data-eucookielaw-dest="' . $items[4] . '"';
 			$newAttr .= ' data-eucookielaw-attr="' . $items[2] . '"';
 
-			$replaced = str_replace( $items[4], 'about:blank', $items[0] );
+			!defined('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE') && define('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE', 'about:blank');
+			!defined('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE') && define('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE', 'about:blank');
+
+			$defaultUrl = "about:blank";
+
+			switch(  trim($items[1]) ){
+				case 'iframe':
+					$defaultUrl = EUCOOKIELAW_IFRAME_DEFAULT_SOURCE;
+					break;
+				case 'script':
+					$defaultUrl = EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE;
+					break;
+			}
+
+			$replaced = str_replace( $items[4], $defaultUrl, $items[0] );
 
 			// Firefox issue https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 			if(strtolower( trim($items[1]) ) == 'iframe'){

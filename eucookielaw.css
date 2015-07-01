@@ -141,3 +141,13 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
         font-size: 50%;
     }
 }
+
+.eucookielaw-blocked{
+    border: 1px solid #ccc;
+    background-color: #eee;
+    color: #444;
+    font-weight: bold;
+    text-align: center;
+    display: inline-block;
+
+}

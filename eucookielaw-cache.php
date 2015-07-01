@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.1.3
+ * @version 2.2.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -61,6 +61,12 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 		$fixedOn         = EUCgetOption( EUCookieLaw::OPT_FIXED_ON, 'top' );
 		$additionalClass = EUCgetOption( EUCookieLaw::OPT_BANNER_STYLE, '' );
 
+		$iframeSrc       = EUCgetOption( EUCookieLaw::OPT_DEFAULT_IFRAME_SRC, false);
+		$scriptSrc       = EUCgetOption( EUCookieLaw::OPT_DEFAULT_SCRIPT_SRC, false);
+
+		if(!$iframeSrc) $iframeSrc = 'about:blank';
+		if(!$scriptSrc) $scriptSrc = 'about:blank';
+
 		$agreeLink = $_SERVER['REQUEST_URI'];
 
 		$url = preg_replace( '#(\?|&)__eucookielaw=([^&]+)(&?(.*))#', '$1$4', $_SERVER['REQUEST_URI'] );
@@ -85,6 +91,9 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 		! defined( 'EUCOOKIELAW_DEBUG' ) && define( 'EUCOOKIELAW_DEBUG', ( $debug == 'y' ) );
 		! defined( 'EUCOOKIELAW_DISABLED' ) && define( 'EUCOOKIELAW_DISABLED', $enabled !== 'y' );
 		! defined( 'EUCOOKIELAW_ALLOWED_COOKIES' ) && define( 'EUCOOKIELAW_ALLOWED_COOKIES', $whitelstCookies );
+
+		! defined( 'EUCOOKIELAW_IFRAME_DEFAULT_SOURCE' ) && define( 'EUCOOKIELAW_IFRAME_DEFAULT_SOURCE', $iframeSrc );
+		! defined( 'EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE' ) && define( 'EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE', $scriptSrc );
 
 		require_once dirname( __FILE__ ) . '/eucookielaw-header.php';
 	}
