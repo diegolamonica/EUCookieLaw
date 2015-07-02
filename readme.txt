@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Law Compliance
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 2.2.1
+Stable tag: 2.2.2
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -48,8 +48,11 @@ For manual installation via FTP
 
 == Changelog ==
 
-= 2.2.1 =
-* **BUGFIX**: Whe W3 Total Cache is enabled and you do not have right permissions on file the message as quite cryptical.
+= 2.2.2 =
+
+* **IMPROVEMENTS**: Some JavaScript were not detected by the server if formatted in certain formats.
+* **BUGFIX**: \[WP\] When W3 Total Cache is enabled and you do not have right permissions on file the message as quite cryptical.
+
 = 2.2.0 =
 
 * **NEW**: \[WP\] On tinyMCE (visual editor) you have the EUCookieLaw helpers

@@ -340,8 +340,9 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
-## 2.2.1
-* **BUGFIX**: Whe W3 Total Cache is enabled and you do not have right permissions on file the message as quite cryptical.
+## 2.2.2
+* **IMPROVEMENTS**: Some JavaScript were not detected by the server if formatted in certain formats.
+* **BUGFIX**: \[WP\] When W3 Total Cache is enabled and you do not have right permissions on file the message as quite cryptical.
 
 ## 2.2.0
 * **NEW**: \[WP\] On tinyMCE (visual editor) you have the EUCookieLaw helpers
