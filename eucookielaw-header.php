@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.2.2
+ * @version 2.3.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -132,10 +132,9 @@ if(!function_exists('gzdecode')) {
 	}
 }
 
-
 class EUCookieLawHeader{
 
-	const VERSION = '2.2.2';
+	const VERSION = '2.3.0';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
@@ -150,15 +149,32 @@ class EUCookieLawHeader{
 
 	private $isRejected = false;
 
-	private function log( $message ){
+	private function log( $message, $logOn = null){
+		if(is_null($logOn)) $logOn = $this->logOn;
 		if(EUCOOKIELAW_DEBUG) {
-			switch ( $this->logOn ) {
+			switch ( $logOn ) {
+				case self::WRITE_ON_FILE:
+
+					if(!defined('EUCOOKIELAW_LOG_FILE')){
+						$this->log("EUCOOKIELAW_LOG_FILE constant not defined", self::WRITE_ON_ERROR_LOG);
+						$this->log($message, self::WRITE_ON_ERROR_LOG);
+					}else{
+						if(!file_exists(EUCOOKIELAW_LOG_FILE)) touch(EUCOOKIELAW_LOG_FILE);
+						$fh = @fopen(EUCOOKIELAW_LOG_FILE, 'a+');
+						if($fh){
+							fwrite($fh, '[' . date('Y-m-d H:i:s')  . ' @ ' . $_SERVER['REMOTE_ADDR'] . ']: ' . $message ."\n" );
+							fclose($fh);
+						}else{
+							$this->log("file " . EUCOOKIELAW_LOG_FILE  . " is not writable", self::WRITE_ON_ERROR_LOG);
+							$this->log($message, self::WRITE_ON_ERROR_LOG);
+						}
+					}
+					break;
+
 				case self::WRITE_ON_ERROR_LOG:
 					error_log( $message );
 					break;
-				case self::WRITE_ON_FILE:
-					/* NOT YET IMPLEMENTED */
-					break;
+
 				case self::WRITE_ON_SCREEN:
 					/* NOT YET IMPLEMENTED */
 					break;
@@ -235,6 +251,7 @@ class EUCookieLawHeader{
 			if ( $isHuman && !$hasCookie && $this->canStart() ) {
 
 				$this->log("Start buffering");
+				$this->log($_SERVER['REQUEST_URI']);
 				ob_start( array( $this, "buffering" ) );
 			}
 		}
@@ -249,6 +266,23 @@ class EUCookieLawHeader{
 		return $buffer;
 	}
 
+    private function getDefaultSourceByType($type){
+			!defined('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE') && define('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE', 'about:blank');
+			!defined('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE') && define('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE', 'about:blank');
+
+			$defaultUrl = "about:blank";
+
+        switch( strtolower($type) ){
+				case 'iframe':
+					$defaultUrl = EUCOOKIELAW_IFRAME_DEFAULT_SOURCE;
+					break;
+				case 'script':
+					$defaultUrl = EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE;
+					break;
+			}
+        return $defaultUrl;
+    }
+
 	private function replaceInSource( $regexp, $disallowedDomain, $buffer){
 		while ( preg_match( $regexp, $buffer, $items ) ) {
 
@@ -258,16 +292,7 @@ class EUCookieLawHeader{
 			!defined('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE') && define('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE', 'about:blank');
 			!defined('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE') && define('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE', 'about:blank');
 
-			$defaultUrl = "about:blank";
-
-			switch(  trim($items[1]) ){
-				case 'iframe':
-					$defaultUrl = EUCOOKIELAW_IFRAME_DEFAULT_SOURCE;
-					break;
-				case 'script':
-					$defaultUrl = EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE;
-					break;
-			}
+			$defaultUrl = $this->getDefaultSourceByType( trim($items[1]) );
 
 			$replaced = str_replace( $items[4], $defaultUrl, $items[0] );
 
@@ -295,7 +320,7 @@ class EUCookieLawHeader{
 		$headersChanged = false;
 
 		foreach ( $headers as $header ) {
-			if(EUCOOKIELAW_DEBUG) error_log("Header: $header" );
+			$this->log("Header: $header" );
 
 			if ( preg_match( "#^Set-Cookie:\\s([^;]+)#", $header, $cookieData ) ) {
 
@@ -361,6 +386,69 @@ class EUCookieLawHeader{
 		return $this->comments[$matches[1]];
 	}
 
+    private function hasDisallowedURL($url){
+        if (EUCOOKIELAW_DISALLOWED_DOMAINS != '') {
+            $disallowedDomains = preg_split("#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS);
+            foreach($disallowedDomains as $disallowedDomain) {
+                if ($disallowedDomain[0] == '.') {
+                    $domainToScan = '([a-z0-9\-_]{1,63}\.)*' . preg_quote(substr($disallowedDomain, 1), "#");
+                } else {
+                    $domainToScan = preg_quote($disallowedDomain, "#");
+                }
+
+                if(preg_match('#//' . $domainToScan . '#', $url)){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function useDOM( $buffer, $tags, $specialAttriutes, $inScripts ){
+
+        libxml_use_internal_errors(true);
+        $doc = new DOMDocument();
+        $doc->encoding = 'utf-8';
+        $doc->loadHTML(mb_convert_encoding($buffer, 'HTML-ENTITIES', 'UTF-8'));
+        foreach($tags as $tag) {
+
+            $elements = $doc->getElementsByTagName($tag);
+            foreach($elements as $element){
+                $attribute = isset($specialAttriutes[$tag]) ? $specialAttriutes[$tag] : $specialAttriutes['*'];
+                $url = $element->getAttribute($attribute);
+                $this->log("Checking $url");
+                if(!empty($url) && $this->hasDisallowedURL($url)){
+                    $newURL = $this->getDefaultSourceByType($tag);
+                    $element->setAttribute($attribute, $newURL);
+                    $element->setAttribute('data-eucookielaw-dest', $url);
+                    $element->setAttribute('data-eucookielaw-attr', $attribute);
+                }
+            }
+        }
+
+        if($inScripts) {
+            $this->log("looking in scripts");
+            $scripts = $doc->getElementsByTagName('script');
+
+            foreach($scripts as $script){
+
+                $buffer = $script->nodeValue;
+                if( $this->hasDisallowedURL( $buffer ) ){
+                    $script->nodeValue = ' /* Removed by EUCookieLaw */';
+                }
+
+            }
+
+        }
+
+
+        $buffer = $doc->saveHTML();
+        libxml_use_internal_errors(false);
+        return $buffer;
+    }
+
+
 	public function buffering( $buffer ) {
 
 		! defined( 'EUCOOKIELAW_DISALLOWED_DOMAINS' ) && define( 'EUCOOKIELAW_DISALLOWED_DOMAINS', '' );
@@ -369,7 +457,9 @@ class EUCookieLawHeader{
 		! defined( 'EUCOOKIELAW_LOOK_IN_TAGS' ) && define( 'EUCOOKIELAW_LOOK_IN_TAGS', 'script|iframe|img|embed|param' );
 		! defined( 'EUCOOKIELAW_ALLOWED_COOKIES' ) && define( 'EUCOOKIELAW_ALLOWED_COOKIES', '' );
 
-		if(EUCOOKIELAW_DEBUG) error_log("buffering contents");
+		$this->log("buffering contents");
+
+
 
 		$specialAttriutes = array(
 			'form'  => 'action',
@@ -377,12 +467,23 @@ class EUCookieLawHeader{
 			'param' => 'value',
 			'*'     => 'src',
 		);
-		if(EUCOOKIELAW_DEBUG) error_log("Checking headers");
+		$this->log("Checking headers");
 		$headersDetails = $this->checkHeaders();
-		if(EUCOOKIELAW_DEBUG) error_log("Headers checked");
+		$this->log("Headers checked");
 		if($this->isGZipped){
 			$buffer  =gzdecode( $buffer );
 		}
+
+        $tags = explode( "|", EUCOOKIELAW_LOOK_IN_TAGS );
+        $disallowedDomains = preg_split("#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS);
+
+        if( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) {
+
+            $this->log("Processing via DOM");
+            $buffer = $this->useDOM($buffer, $tags, $specialAttriutes, EUCOOKIELAW_LOOK_IN_SCRIPTS);
+            $this->log("Dom Processed");
+        } else {
+
 
 		# Removing blocked sections
 		$buffer = preg_replace("#<!-- EUCookieLaw:start -->(.*?)<!-- EUCookieLaw:end -->#ms", '', $buffer);
@@ -390,17 +491,17 @@ class EUCookieLawHeader{
 		# stripping out comments from HTML
 
 
-		$buffer = preg_replace_callback('#<script(.*?)>([^<].+?)</script>#ims', array($this, 'removeInlineScripts'), $buffer);
-		$buffer = preg_replace_callback("#(\r?\n)*<!--.*?-->(\r?\n)*#ims", array($this, 'preserveComments'), $buffer);
+
+
+            $buffer = preg_replace_callback('#<script[^>]*>.*?</script>#ims', array($this, 'removeInlineScripts'), $buffer);
+            $buffer = preg_replace_callback("#(\r?\n)*<!--.*?-->(\r?\n)*#ims", array($this, 'preserveComments'), $buffer);
 		$buffer = preg_replace_callback('#\{@@EUCOOKIESCRIPT\[(\d+)\]\}#', array($this, 'restoreInlineScripts'), $buffer);
 
 		$buffer = $this->removeBlockedScripts($buffer);
 
 		if ( EUCOOKIELAW_DISALLOWED_DOMAINS != '' ) {
 
-			$disallowedDomains = preg_split( "#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS );
 
-			$tags               = explode( "|", EUCOOKIELAW_LOOK_IN_TAGS );
 			$expectedAttributes = array();
 			foreach ( $tags as $tag ) {
 				if ( ! isset( $specialAttriutes[ $tag ] ) ) {
@@ -437,7 +538,6 @@ class EUCookieLawHeader{
 						if ( preg_match_all( $pattern, $buffer, $matches ) ) {
 
 
-
 							foreach ( $matches[2] as $index => $match ) {
 
 								if ( preg_match( '#' . $domainToScan . '#', $match ) ) {
@@ -464,7 +564,8 @@ class EUCookieLawHeader{
 				}
 
 			}
-
+            }
+        }
 			$theTitle = EUCOOKIELAW_BANNER_TITLE;
 			$theMessage = EUCOOKIELAW_BANNER_DESCRIPTION;
 			$agree = EUCOOKIELAW_BANNER_AGREE_BUTTON;
@@ -496,15 +597,20 @@ EOT;
 			if ( EUCOOKIELAW_DEBUG ) {
 				$buffer = "<!-- (EUCookieLaw Debug Enabled) -->\n" .
 				          "<!-- " . self::VERSION . " -->\n" .
+                      (( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) ? "<!-- Using DOMDocument -->\n": '').
 				          $headersDetails . "\n" .
 				          "<!-- Processed on " . date('Y-m-d H:i:s') . " -->\n ".
 				          "<!-- Searching in the following tags: " . EUCOOKIELAW_LOOK_IN_TAGS . ") -->\n" .
-				          "<!-- Searching in the following attributes: " . $expectedAttributes . ") -->\n" .
+                      (isset($expectedAttributes)?"<!-- Searching in the following attributes: " . $expectedAttributes . ") -->\n":'') .
 				          $buffer . "\n<!-- EUCookieLaw End -->";
 			}
-		}
+
+        if( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) {
+
+        } else {
 
 		$buffer = preg_replace_callback('#{@@EUCOOKIECOMMENTS\[(\d+)\]}#', array($this, 'restoreComments'), $buffer);
+        }
 
 		if($this->isGZipped)
 			$buffer = gzencode($buffer);
@@ -531,5 +637,6 @@ if(isset($_GET['__eucookielaw'])){
 }
 
 if(!defined('EUCOOKIELAW_DISABLED') || defined('EUCOOKIELAW_DISABLED') && !EUCOOKIELAW_DISABLED) {
-	new EUCookieLawHeader();
+
+	new EUCookieLawHeader( defined('EUCOOKIELAW_LOG_FILE') ? EUCookieLawHeader::WRITE_ON_FILE : EUCookieLawHeader::WRITE_ON_ERROR_LOG);
 }

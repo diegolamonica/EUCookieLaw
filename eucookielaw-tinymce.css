@@ -22,3 +22,61 @@
 i.mce-i-eucookielaw {
     background-image: url(cookie.png);
 }
+span.eucookielaw-info-submit{
+    display: none;
+}
+.fixed-on-top{
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    z-index: 9999;
+    padding: 1em;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    max-width: 300px;
+}
+.fixed-on-top span.eucookielaw-info-submit{
+    display: block;
+    padding: 0.5em;
+}
+
+div.alert {
+    background: #fff;
+    border-left: 4px solid #ffaa44;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    margin: 5px 15px 2px;
+    padding: 1px 12px;
+}
+
+#eucookielaw-settings{
+    position: fixed;
+    top: 100px;
+    left: 180px;
+    right: 150px;
+    bottom: 100px;
+    border: 1px solid #ccc;
+    border-radius: 1em;
+    background-color: #fff;
+    padding: 1em;
+    z-index: 999;
+}
+
+    #eucookielaw-settings textarea{
+        position: absolute;
+        left: 5%;
+        bottom: 3em;
+        top: 1em;
+        width: 90%;
+        display: block;
+
+    }
+
+    #eucookielaw-settings p{
+        clear: both;
+        bottom: 0;
+        position: absolute;
+        left: 5%;
+        width: 90%;
+        text-align: right;
+    }

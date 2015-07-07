@@ -12,8 +12,29 @@
 
 
 (function($) {
+	if( pagenow !== 'eu-cookie-law_page_EUCookieLaw-messages') return;
 
 	var EUCookieLawServices = {};
+	var mode = 'export';
+
+	function manageSettings(){
+		var $ = jQuery;
+		if($('#eucookielaw-settings').length == 0){
+			$('<div id="eucookielaw-settings"><textarea></textarea><p><button>done</button></p>').appendTo('body');
+		}
+		$('#eucookielaw-settings textarea').val( $('form').serialize() );
+	}
+
+	function exportSettings(event){
+		event.preventDefault();
+		mode = 'export';
+		manageSettings();
+	}
+	function importSettings(event){
+		event.preventDefault();
+		mode = 'import';
+		manageSettings();
+	}
 
 	window.EUCookieLawAddService = function( serviceName, rules){
 		EUCookieLawServices[serviceName] = rules;
@@ -174,5 +195,83 @@
 		$( $this.attr('href')).val( $this.data('set-url') );
 
 	});
+
+
+	$('#import-settings').on('click', importSettings);
+	$('#export-settings').on('click', exportSettings);
+
+
+	$(document).on('click', '#eucookielaw-settings button', function(){
+		if(mode =='import') {
+			var settings = $('#eucookielaw-settings textarea').val();
+			var queryString = {};
+			settings.replace(
+				new RegExp("([^?=&]+)(=([^&]*))?", "g"),
+				function($0, param, $2, value) {
+					param = decodeURIComponent(param);
+					value = decodeURIComponent(value);
+					if(/.*\[]$/.test(param)){
+						param = param.substr(0, param.length-2);
+						if(!$.isArray( queryString[param] )){
+							if(queryString[param] !== undefined)
+								queryString[param] = [ queryString[param] ];
+							else
+								queryString[param] = [];
+						}
+						if(value!=='') {
+							queryString[param].push(value);
+						}
+					}else {
+						queryString[param] = value;
+					}
+				}
+			);
+
+			for(var key in queryString){
+				var value = queryString[key],
+					selector = '[name="' + key + '"]';
+
+				if( $.isArray( value ) ){
+					selector = '[name="' + key + '[]"]';
+					$(selector).parent('.eucookie-repeated-section').not(':first').remove();
+					selector += ":last";
+					for(var i = 0; i<= value.length; i++) {
+						if(i>0){
+							cloneItem( $(selector).parent('.eucookie-repeated-section') );
+						}
+						$(selector).val( value[i] );
+					}
+				}else {
+					$(selector).val(value);
+				}
+			}
+		}
+		$('#eucookielaw-settings').remove();
+	});
+
+	$('.handlediv').on('click', function(event){
+		$(this).siblings('.inside').slideToggle('fast');
+	});
+
+	var pos = $('#submit').offset().top;
+	$(window).on('scroll', function () {
+
+		var scrollTop = $(window).scrollTop();
+		if (pos < scrollTop) {
+			$('#submit').parent().addClass('fixed-on-top');
+		} else {
+			$('#submit').parent().removeClass('fixed-on-top');
+		}
+
+	});
+
+
+	$('[name=debug]').on('change', function(){
+
+		var val = $('[name=debug]:checked').val();
+		$('.on-debug-'+ val).slideDown();
+		$('.on-debug').not('.on-debug-'+ val).slideUp();
+
+	}).change();
 
 })(jQuery);

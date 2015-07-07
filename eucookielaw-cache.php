@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.2.0
+ * @version 2.3.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -51,6 +51,7 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 		$lookInTags         = EUCgetOption( EUCookieLaw::OPT_LOOKINTAGS, EUCookieLaw::OPT_DEFAULT_LOOKINTAGS );
 		$lookInScripts      = EUCgetOption( EUCookieLaw::OPT_LOOKINSCRIPTS, 'n' );
 		$debug              = EUCgetOption( EUCookieLaw::OPT_DEBUG, 'n' );
+		$logFile            = EUCgetOption( EUCookieLaw::OPT_LOGFILE, '' );
 		$enabled            = EUCgetOption( EUCookieLaw::OPT_ENABLED, 'y' );
 		$whitelstCookies    = EUCgetOption( EUCookieLaw::OPT_WHITELIST_COOKIES, '' );
 
@@ -61,12 +62,17 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 		$fixedOn         = EUCgetOption( EUCookieLaw::OPT_FIXED_ON, 'top' );
 		$additionalClass = EUCgetOption( EUCookieLaw::OPT_BANNER_STYLE, '' );
 
+        $engine          = EUCgetOption( EUCookieLaw::OPT_ENGINE, 'regexp');
+
 		$iframeSrc       = EUCgetOption( EUCookieLaw::OPT_DEFAULT_IFRAME_SRC, false);
 		$scriptSrc       = EUCgetOption( EUCookieLaw::OPT_DEFAULT_SCRIPT_SRC, false);
 
 		if(!$iframeSrc) $iframeSrc = 'about:blank';
 		if(!$scriptSrc) $scriptSrc = 'about:blank';
 
+		if($logFile!=='' && !defined('EUCOOKIELAW_LOG_FILE')){
+			define('EUCOOKIELAW_LOG_FILE', $logFile);
+		}
 		$agreeLink = $_SERVER['REQUEST_URI'];
 
 		$url = preg_replace( '#(\?|&)__eucookielaw=([^&]+)(&?(.*))#', '$1$4', $_SERVER['REQUEST_URI'] );
@@ -75,6 +81,7 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 		$disagreeLink = ( preg_match( '#\?#', $url ) ? '&' : '?' ) . '__eucookielaw=disagree';
 		$agreeLink    = ( preg_match( '#\?#', $url ) ? '&' : '?' ) . '__eucookielaw=agree';
 
+        ! defined( 'EUCOOKIELAW_USE_DOM') && define('EUCOOKIELAW_USE_DOM', $engine == 'dom');
 		! defined( 'EUCOOKIELAW_DISALLOWED_DOMAINS' ) && define( 'EUCOOKIELAW_DISALLOWED_DOMAINS', $disalloweddDomains );
 		! defined( 'EUCOOKIELAW_LOOK_IN_TAGS' ) && define( 'EUCOOKIELAW_LOOK_IN_TAGS', $lookInTags );
 		! defined( 'EUCOOKIELAW_LOOK_IN_SCRIPTS' ) && define( 'EUCOOKIELAW_LOOK_IN_SCRIPTS', $lookInScripts == 'y' );

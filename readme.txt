@@ -1,10 +1,10 @@
 === Plugin Name ===
 Contributors: diego-la-monica
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
-Tags: Cookie, Law Compliance
+Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cookie block, cookie consent, cookie policy, cookie banner
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 2.2.2
+Stable tag: 2.3.0
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,19 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+
+= 2.3.0 =
+
+* **NEW**: Now there are two parsing engine, one based on regular expressions and one based on DOMDocument.
+* **NEW**: \[WP\] Now you can import and export settings to apply the same contents on multiple sites easly.
+* **NEW**: Now you can write debug informations on file.
+* **NEW**: \[WP\] When the plugin's debug is enabled you will see an alert on every admin page.
+* **NEW**: New theme `floating` available.
+* **IMPROVEMENTS**: \[WP\] Admin interface improved
+* **IMPROVEMENTS**: Improved documentation
+* updated translation files
+* updated documentation
+* updated the version number
 
 = 2.2.2 =
 

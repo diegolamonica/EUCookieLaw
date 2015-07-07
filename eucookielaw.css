@@ -132,9 +132,58 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
     padding: 0;
     margin: 0 0.3em;
 }
-.eucookielaw-banner .well p.banner-agreement-buttons a.disagree-button{
+.eucookielaw-banner.grass .well p.banner-agreement-buttons a.disagree-button{
     color: #800;
 }
+
+/* Floating Theme */
+.eucookielaw-banner.floating{
+    left: 10%;
+    top: 10% !important;
+    right: 10%;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: 5px 5px 20px #ccc;
+    position: fixed;
+}
+
+.eucookielaw-banner.floating .well{
+    background-color: #fff;
+    padding: 0;
+}
+
+
+.eucookielaw-banner.floating .well h1.banner-title {
+    padding: 0.5em;
+    background-color: #eee;
+    color: #444;
+}
+
+.eucookielaw-banner.floating .well p.banner-message {
+    padding: 0.5em;
+    color: #444;
+}
+
+.eucookielaw-banner.floating a{
+    color: #486;
+}
+.eucookielaw-banner.floating .well p.banner-agreement-buttons{
+    border-top: 0;
+    margin: 0;
+}
+
+.eucookielaw-banner.floating .well p.banner-agreement-buttons a.btn{
+    color: #080;
+    border: 0;
+    text-decoration: underline;
+    background-color: transparent;
+    padding: 0;
+    margin: 0 0.3em;
+}
+.eucookielaw-banner.floating .well p.banner-agreement-buttons a.disagree-button{
+    color: #800;
+}
+
 
 @media screen and (max-width: 640px){
     .eucookielaw-banner{
