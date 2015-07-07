@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.3.0
+ * @version 2.3.1
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -17,7 +17,7 @@ Class EUCookieLaw{
 	const TEXTDOMAIN        = 'EUCookieLaw';
 	const CUSTOMDOMAIN      = 'EUCookieLawCustom';
 	const MENU_SLUG	        = 'EUCookieLaw';
-	const VERSION           = '2.3.0';
+	const VERSION           = '2.3.1';
 	const CSS               = 'EUCookieLaw_css';
 	const CUSTOMCSS         = 'EUCookieLaw_css_custom';
 	const JS                = 'EUCookieLaw_js';
@@ -197,6 +197,7 @@ Class EUCookieLaw{
 		$nested = false;
 		# print_r($config);
 		$applyAtLine = 0;
+		$addToWPConfig = array();
 		foreach($config as $line => $row ){
 			# We should put our fragment before the first require content
 			if(!$ignore && !$nested && preg_match('#^\s*require_once#',$row)) {
@@ -824,9 +825,10 @@ Class EUCookieLaw{
 
 	public function parseLogRow($row){
 		return '<p>' . preg_replace('#\[([^\s]+)\s([^\s]+)\s@\s([^\s]+)\]#', '<span class="date">$1</span> <span class="time">$2</span> <span class="ip">$3</span> ', $row) .'</p>';
+
 	}
 
-	private function updateOpti1ons(){
+	private function updateOptions(){
 		if(isset($_POST['nonce']) && wp_verify_nonce($_POST['nonce'], __CLASS__)){
 			$_POST = stripslashes_deep($_POST);
 			update_option(self::OPT_TITLE,          $_POST['banner_title']);
@@ -997,7 +999,7 @@ Class EUCookieLaw{
 			<tr>
 				<th scope="row"><label for="fix_on"><?php _e("Fixed on", self::TEXTDOMAIN); ?></label></th>
 				<td>
-					<select name="fix_on" type="text" id="fix_on">
+					<select name="fix_on" id="fix_on">
 						<option value="static" <?php echo selected($fixedOn, 'static'); ?> ><?php _e('Above the contents', self::TEXTDOMAIN); ?></option>
 						<option value="top" <?php echo selected($fixedOn, 'top'); ?> ><?php _e('Top of the page', self::TEXTDOMAIN); ?></option>
 						<option value="bottom" <?php echo selected($fixedOn, 'bottom'); ?>><?php _e('Bottom of the page', self::TEXTDOMAIN); ?></option>
@@ -1240,8 +1242,8 @@ Class EUCookieLaw{
 							<input name="whitelist[]" type="text"
 							       value="<?php echo htmlspecialchars( $item ); ?>" class="regular-text">
 							<span>
-				                <a href="#" class="add"> + </a>
-				                <a href="#" class="remove"> - </a>
+				                <a href="#" class="button add"> + </a>
+				                <a href="#" class="button remove"> - </a>
 				            </span>
 						</div>
 					<?php

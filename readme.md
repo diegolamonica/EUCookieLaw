@@ -346,6 +346,10 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
+## 2.3.1
+* **BUGFIX**: \[WP\] Unable to save settings due to a `1` accidentally placed in the wrong place.
+* **IMPROVEMENTS**: \[WP\] Admin interface minor improvements
+
 ## 2.3.0
 * **NEW**: Now there are two parsing engine, one based on regular expressions and one based on DOMDocument.
 * **NEW**: \[WP\] Now you can import and export settings to apply the same contents on multiple sites easly.

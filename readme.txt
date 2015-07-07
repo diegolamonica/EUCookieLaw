@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40
 Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cookie block, cookie consent, cookie policy, cookie banner
 Requires at least: 4.0
 Tested up to: 4.2.2
-Stable tag: 2.3.0
+Stable tag: 2.3.1
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,11 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+
+= 2.3.1 =
+
+* **BUGFIX**: \[WP\] Unable to save settings due to a `1` accidentally placed in the wrong place.
+* **IMPROVEMENTS**: \[WP\] Admin interface minor improvements
 
 = 2.3.0 =
 
