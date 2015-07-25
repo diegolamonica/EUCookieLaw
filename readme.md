@@ -346,7 +346,8 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
-## 2.3.1
+## 2.3.2
+* **BUGFIX**: \[WP\] JavaScript for the admin interface was corrupted.
 * **BUGFIX**: \[WP\] Unable to save settings due to a `1` accidentally placed in the wrong place.
 * **IMPROVEMENTS**: \[WP\] Admin interface minor improvements
 
