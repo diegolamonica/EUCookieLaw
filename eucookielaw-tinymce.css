@@ -80,3 +80,21 @@ div.alert {
         width: 90%;
         text-align: right;
     }
+
+input.invalid{
+
+    border: 1px solid #c00;
+    background-color: #fee;
+
+}
+
+input.invalid-by{
+
+    border: 1px solid #f84;
+    background-color: #ffe;
+}
+
+ul.scanned-url{
+    list-style: disc;
+    margin-left: 1em;
+}

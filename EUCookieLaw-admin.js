@@ -1,7 +1,7 @@
 /**
  * EUCookieLaw: simple object to accomplish european law requirements about cookie transmission to clients
  * @class EUCookieLaw
- * @version 2.3.2
+ * @version 2.4.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica
@@ -18,7 +18,7 @@
 	var mode = 'export';
 
 	function manageSettings(){
-		var $ = jQuery;
+
 		if($('#eucookielaw-settings').length == 0){
 			$('<div id="eucookielaw-settings"><textarea></textarea><p><button>done</button></p>').appendTo('body');
 		}
@@ -45,10 +45,11 @@
 		var clonedSection = $(theContainer).clone(true);
 
 		// And appending it just after the current container
-		$(clonedSection).insertAfter(theContainer);
+		return $(clonedSection).insertAfter(theContainer);
+
 	}
 
-	function makeRepeater(sectionsSelector, addClass, removeClass, AYSMsg) {
+	function makeRepeater(sectionsSelector, addClass, removeClass, callback) {
 		$(document
 		).on("click",
 				sectionsSelector + " " + addClass + "," +
@@ -61,7 +62,13 @@
 			var theContainer = $(this).parents(sectionsSelector);
 			if ($(this).is(addClass)) {
 
-				cloneItem(theContainer);
+				var theItem = cloneItem(theContainer);
+
+				if(typeof(callback) === 'function'){
+
+					callback('added', theItem);
+
+				}
 
 			} else {
 				// If the user confirm the "Are You Sure" message
@@ -75,6 +82,12 @@
 							$(this).hide('fast',
 								function () {
 									$(this).remove();
+
+									if(typeof(callback) === 'function'){
+
+										callback('removed');
+
+									}
 								}
 							);
 						}
@@ -88,7 +101,9 @@
 		'.eucookie-repeated-section',   /* The container selector */
 		'.add',                   /* The add action selector */
 		'.remove',                /* The remove action selector */
-		'Are you sure you want to remove this section?' /* The AYS message. */
+		function(action) {
+			console.log(action, $('input[name="blocked_domains[]"]:first').blur() );
+		}
 	);
 
 	EUCookieLawAddService('google-all', [
@@ -242,7 +257,8 @@
 						$(selector).val( value[i] );
 					}
 				}else {
-					$(selector).val(value);
+					$(selector).not(':checkbox').not(':radio').val(value);
+					$(selector+'[value="' + value +'"]:radio').click();
 				}
 			}
 		}
@@ -262,9 +278,47 @@
 		} else {
 			$('#submit').parent().removeClass('fixed-on-top');
 		}
-
 	});
 
+	function escapeRegExp(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+	}
+
+	$(document).on('focus', 'input[name="blocked_domains[]"].invalid', function(event){
+		var rel = $(this).data('rel');
+		rel.addClass('invalid-by');
+	});
+
+	$(document).on('blur', 'input[name="blocked_domains[]"]', function(event){
+
+		var rel = $(this).data('rel');
+		if(rel) {
+			rel.removeClass('invalid-by');
+		}
+
+		// Check if there is a rule twice
+		// or a rule covered from another
+
+		var allURLs = $('input[name="blocked_domains[]"]'),
+			invalidURLs = [];
+		allURLs.each( function(){
+			var thisURL = $(this),
+				thisURLvalue = thisURL.val(),
+				isRegExp = (thisURLvalue[0] == '.'),
+				thisURLreg = new RegExp( '^' + (isRegExp?'([a-z0-9\\-_]{1,63}\\.)*':'') + escapeRegExp(thisURLvalue.substr(isRegExp?1:0)) );
+
+			allURLs.not(this).each( function(){
+				if( thisURLreg.test( $(this).val() ) || thisURLvalue == $(this).val() ){
+					$(this).data('rel', thisURL);
+					invalidURLs.push( this );
+				}
+			});
+		});
+		$(allURLs).not(invalidURLs).removeClass('invalid');
+		$(invalidURLs).addClass('invalid');
+
+	});
+	$('input[name="blocked_domains[]"]:first').blur();
 
 	$('[name=debug]').on('change', function(){
 
@@ -273,5 +327,16 @@
 		$('.on-debug').not('.on-debug-'+ val).slideUp();
 
 	}).change();
+
+	$('[name=agree_on_scroll]').on('change', function(){
+		var val = $('[name=agree_on_scroll]:checked').val();
+
+		if(val == 'y'){
+			$('[name=agree_on_scroll]:checked').parents('label').next().show();
+		}else{
+			$('[name=agree_on_scroll]:checked').parents('label').prev().hide();
+		}
+	}).change();
+
 
 })(jQuery);
