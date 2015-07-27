@@ -65,7 +65,7 @@ var EUCookieLaw = (function (doc) {
 				if (typeof(_get) == 'function') propObject['get'] = _get;
 
 				Object.defineProperty(object, prop, propObject);
-			} else {
+			} else if (object.__defineGetter__) {
 
 				if (typeof(_set) == 'function') object.__defineSetter__(prop, _set);
 				if (typeof(_get) == 'function') object.__defineGetter__(prop, _get);
@@ -220,7 +220,11 @@ var EUCookieLaw = (function (doc) {
 			settings.cookieEnabled = true;
 			settings.cookieRejected = false;
 			if (!isOriginal) {
-				delete doc.cookie;
+				try {
+					delete doc.cookie;
+				} catch (e) {
+					doc['cookie'] = undefined;
+				}	
 				if(!settings.reload) onAgree();
 				isOriginal = true;
 			}
@@ -397,7 +401,11 @@ var EUCookieLaw = (function (doc) {
 					}
 					if(cookieAllowed){
 						if (settings.debug) console.log("The cookie " + cookiePart[0] + ' is allowed');
-						delete doc.cookie;
+						try {
+							delete doc.cookie;
+						} catch (e) {
+							doc['cookie'] = undefined;
+						}	
 						doc.cookie = cookie;
 						if (settings.debug) console.info(doc.cookie);
 						blockCookie();
@@ -411,7 +419,11 @@ var EUCookieLaw = (function (doc) {
 					return false;
 				} else {
 					if (settings.debug) console.warn("I'm resetting the original document cookie");
-					delete doc.cookie;
+					try {
+						delete doc.cookie;
+					} catch (e) {
+						doc['cookie'] = undefined;
+					}	
 					doc.cookie = cookie;
 				}
 				return cookie;
