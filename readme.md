@@ -65,6 +65,9 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
 
 * `path` (`string` defualt `/`) defines the path where the consent cookie will be valid.
 
+* `domain` (`string` default setted to `window.location.host` value) defines the domain which to apply the cookie.  
+  **Note:** Define to `false` if the URL is defined by IP instead of domain.
+  
 * `cookieList` (`array` default `[]`) the list of techincal cookies the user cannot choose to reject. If some script try 
   to write one of the listed cookie it will be accepted.  
   **TIP:** You can use the `*` wildchar as suffix to intend all the cookies that starts with a specific value (eg. `__umt*` will mean `__umta`, `__umtc` and so on).
@@ -348,6 +351,14 @@ I'd like to translate this plugin in all european languages, but I'm limited to 
 If you want to get involved in this plugin development, then fork the repository, translate in your language and make a pull request!
 
 # Changelog
+
+## 2.5.0
+* **NEW**: Now you can define the domain where the cookie will be applied
+* **IMPROVEMENTS**: Javascript page reload forces contents from server (ignoring browser cache)
+* **BUGFIX**: `WP_CONTENT_DIR` defined instead of `EUCL_CONTENT_DIR` causes some problems if site is without cache.
+* Minor bugfixes and general improvements
+* updated documentation
+* updated the version number
 
 ## 2.4.0
 * **NEW**: Now you can set the number of pixels for consent on scroll

@@ -298,7 +298,8 @@ class EUCookieLawHeader{
 			            $domainToScan = preg_quote( $disallowedDomain, "#" );
 		            }
 
-		            if ( preg_match( '#\/\/' . $domainToScan . '#', $url ) ) {
+		            $pregString ='#\/\/' . $domainToScan . '#';
+		            if ( preg_match( $pregString, $url ) ) {
 
 			            return true;
 		            }
@@ -320,13 +321,14 @@ class EUCookieLawHeader{
 	    $this->log( "Buffer size is: " . strlen($buffer));
 
 	    foreach($tags as $tag) {
+		    $attribute = isset($specialAttriutes[$tag]) ? $specialAttriutes[$tag] : $specialAttriutes['*'];
 
             $elements = $doc->getElementsByTagName($tag);
-		    $this->log("Found " . $elements->length . ' as ' . $tag);
+		    $this->log("Found " . $elements->length . ' with query selector ' . $tag.'[' . $attribute . ']');
             foreach($elements as $element){
-                $attribute = isset($specialAttriutes[$tag]) ? $specialAttriutes[$tag] : $specialAttriutes['*'];
-                $url = $element->getAttribute($attribute);
-	            $this->log("Checking $url");
+                # $attribute = isset($specialAttriutes[$tag]) ? $specialAttriutes[$tag] : $specialAttriutes['*'];
+                $url = $element->hasAttribute($attribute) ? $element->getAttribute($attribute) : null;
+	            if(!is_null($url) ) $this->log("Checking $url");
                 if(!empty($url) && $this->hasDisallowedURL($url)){
 	                $this->log(">>> Found $url <<<");
 	                $newURL = $this->getDefaultSourceByType($tag);

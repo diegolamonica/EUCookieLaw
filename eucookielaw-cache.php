@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.4.0
+ * @version 2.5.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -17,7 +17,7 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 
 		global $euc_iniFile;
 
-		if ( ! defined( 'EUCL_CONTENT_DIR' ) ) define('WP_CONTENT_DIR', ABSPATH . '/wp-content');
+		if ( ! defined( 'EUCL_CONTENT_DIR' ) ) define('EUCL_CONTENT_DIR', ABSPATH . '/wp-content');
 
 		if ( is_dir( EUCL_CONTENT_DIR . '/plugins/nextgen-gallery' ) &&
 		     ( strpos( strtolower( $_SERVER['REQUEST_URI'] ), 'nextgen-attach_to_post' ) !== false )
@@ -104,7 +104,7 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 			! defined( 'EUCOOKIELAW_BANNER_AGREE_LINK' ) && define( 'EUCOOKIELAW_BANNER_AGREE_LINK', $agreeLink );
 			! defined( 'EUCOOKIELAW_BANNER_DISAGREE_LINK' ) && define( 'EUCOOKIELAW_BANNER_DISAGREE_LINK', $disagreeLink );
 
-			! defined( 'EUCOOKIELAW_DEBUG' ) && define( 'EUCOOKIELAW_DEBUG', ( $debug == 'y' ) );
+			! defined( 'EUCOOKIELAW_DEBUG' ) && define( 'EUCOOKIELAW_DEBUG', ( $debug !== 'n' ) );
 			! defined( 'EUCOOKIELAW_DISABLED' ) && define( 'EUCOOKIELAW_DISABLED', $enabled !== 'y' );
 			! defined( 'EUCOOKIELAW_ALLOWED_COOKIES' ) && define( 'EUCOOKIELAW_ALLOWED_COOKIES', $whitelstCookies );
 
