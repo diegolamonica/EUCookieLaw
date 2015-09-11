@@ -50,9 +50,17 @@ Class EUCookieLaw {
 	const OPT_WHITELIST_COOKIES = 'eucookie_law_whitelist_cookies';
 	const OPT_DEBUG = 'eucookie_law_debug';
 	const OPT_LOGFILE = 'eucookie_law_logfile';
+
+	const OPT_DEBUG_VERBOSITY = 'eucookie_law_debug_verbosity';
+
 	const OPT_ENGINE = 'eucookie_law_engine';
 	const OPT_DEFAULT_IFRAME_SRC = 'default_iframe_src';
 	const OPT_DEFAULT_SCRIPT_SRC = 'default_script_src';
+	const OPT_DEFAULT_IMAGE_SRC = 'default_image_src';
+
+
+
+	const OPT_UNAPPLY_ON_URL = 'eucookielaw_unapply_on_url';
 
 	const COOKIE_NAME = '__eucookielaw';
 
@@ -97,6 +105,7 @@ Class EUCookieLaw {
 			}
 		}
 
+		add_action('w3tc_pgcache_flush', array($this, 'pgCacheFlush'));
 	}
 
 	public function loadTranslations() {
@@ -296,6 +305,8 @@ Class EUCookieLaw {
 
 		$phpFile = $directory . '/EUCookieCache.php';
 
+		if(file_exists($phpFile.'.old')) @unlink($phpFile.'.old');
+
 		$template = $this->getTemplateFile( 'EUCookieCache.php' );
 		if ( ! @file_put_contents( $phpFile, $template ) ) {
 			$this->notifyMessage(
@@ -315,6 +326,17 @@ Class EUCookieLaw {
 
 		# Updating .htaccess file
 		$this->updateHtaccess( $directory );
+
+	}
+
+	public function pgCacheFlush(){
+
+		add_action('w3_redirect', array($this, 'pubUpdateCacheDirectory' ));
+	}
+
+	public function pubUpdateCacheDirectory(){
+
+		$this->updateCacheDirectory();
 
 	}
 
@@ -348,6 +370,7 @@ Class EUCookieLaw {
 				self::OPT_AGREE              => get_option( self::OPT_AGREE ),
 				self::OPT_COOKIE_EXPIRES     => get_option( self::OPT_COOKIE_EXPIRES ),
 				self::OPT_DEBUG              => ( get_option( self::OPT_DEBUG ) !== 'n' ) ? 'y' : 'n',
+				self::OPT_DEBUG_VERBOSITY    => ( get_option( self::OPT_DEBUG_VERBOSITY, '99')),
 				self::OPT_LOGFILE            => ( get_option( self::OPT_DEBUG ) === 'file' ) ? WP_PLUGIN_DIR . '/' . self::CUSTOMDOMAIN . '/log.txt' : '',
 				self::OPT_DISAGREE           => get_option( self::OPT_DISAGREE ),
 				self::OPT_ENABLED            => get_option( self::OPT_ENABLED ),
@@ -363,6 +386,8 @@ Class EUCookieLaw {
 				self::OPT_ENGINE             => get_option( self::OPT_ENGINE, 'regexp' ),
 				self::OPT_DEFAULT_IFRAME_SRC => get_option( self::OPT_DEFAULT_IFRAME_SRC, 'about:blank' ),
 				self::OPT_DEFAULT_SCRIPT_SRC => get_option( self::OPT_DEFAULT_SCRIPT_SRC, 'about:blank' ),
+				self::OPT_DEFAULT_IMAGE_SRC  => get_option( self::OPT_DEFAULT_IMAGE_SRC, 'about:blank' ),
+				self::OPT_UNAPPLY_ON_URL     => get_option( self::OPT_UNAPPLY_ON_URL, ''),
 
 			);
 			$file    = WP_CONTENT_DIR . '/cache/eucookielaw.ini';
@@ -484,12 +509,49 @@ Class EUCookieLaw {
 		wp_enqueue_script( __CLASS__, plugin_dir_url( __FILE__ ) . 'EUCookieLaw-admin.js', array( 'jquery' ), self::VERSION, true );
 	}
 
+	public function ignoredURL(){
+		$enabled    = get_option( self::OPT_ENABLED, 'n' );
+
+		if($enabled == 'y') {
+
+			$urls = get_option(self::OPT_UNAPPLY_ON_URL, '');
+			if($urls !== ''){
+
+				$ru = $_SERVER['REQUEST_URI'];
+
+				$url = explode("\n", $urls);
+				foreach($url as $u){
+
+					$u = explode("*", $u);
+					foreach($u as $index => $value)
+						$u[$index] = preg_quote($value, '/');
+
+					$u = implode(".*", $u);
+
+					if( preg_match("/^" . $u . "$/", $ru)) return true;
+
+				}
+
+			};
+
+		}
+
+		return false;
+
+	}
+
 	public function script() {
 		$enabled    = get_option( self::OPT_ENABLED, 'n' );
 		$hasEnabled = get_option( self::OPT_ENABLED, false );
 		$hasTitle   = get_option( self::OPT_TITLE, false );
-		if ( ! $hasEnabled && $hasTitle ) {
-			$enabled = 'y';
+
+		if( $this->ignoredURL() ){
+			$enabled = 'n';
+		}else{
+
+			if ( ! $hasEnabled && $hasTitle ) {
+				$enabled = 'y';
+			}
 		}
 
 		if ( $enabled == 'y' ) {
@@ -506,7 +568,6 @@ Class EUCookieLaw {
 					error_log( "Custom CSS '$customCSSURL' does not exists or not reachable!" );
 				}
 			}
-
 
 			$bannerTitle    = get_option( self::OPT_TITLE, 'Banner title' );
 			$bannerMessage  = get_option( self::OPT_MESSAGE, 'Banner message' );
@@ -762,6 +823,12 @@ Class EUCookieLaw {
 			$screen, 'side', 'high'
 		);
 		add_meta_box(
+			'eucookielaw-debug'.$screen->id,
+			__( 'Debug', self::TEXTDOMAIN),
+			array($this, 'debugMetabox'),
+			$screen, 'side', 'high'
+		);
+		add_meta_box(
 			'eucookielaw-donation' . $screen->id,
 			__( 'Donation', self::TEXTDOMAIN ),
 			array( $this, 'donations' ),
@@ -994,6 +1061,7 @@ Class EUCookieLaw {
 
 	private function scanURL( $url, $screenURL ) {
 
+		$wp_version = get_bloginfo('version');
 		$response = wp_remote_get( $url, array(
 			'httpversion' => '1.1',
 			'user-agent'  => __CLASS__ . ':' . self::VERSION . '(WordPress/' . $wp_version . '); ' . get_bloginfo( 'url' ),
@@ -1005,6 +1073,7 @@ Class EUCookieLaw {
 
 			$realURL = array_unique( $matches[0] );
 			$matches = array_unique( $matches[2] );
+
 			?>
 			<p>
 				<?php _e( "Here are the domains found on your site", self::TEXTDOMAIN ); ?>
@@ -1072,12 +1141,13 @@ Class EUCookieLaw {
 			update_option( self::OPT_AGREE, $_POST['banner_agree'] );
 			update_option( self::OPT_DISAGREE, $_POST['banner_disagree'] );
 			update_option( self::OPT_3RDPDOMAINS, implode( "\n", $_POST['blocked_domains'] ) );
-			update_option( self::OPT_LOOKINTAGS, $_POST['look_in_tags'] );
+			update_option( self::OPT_LOOKINTAGS, implode("|", $_POST['look_in_tags'] ) );
 			update_option( self::OPT_TITLE_TAG, $_POST['tag'] );
 			update_option( self::OPT_LOOKINSCRIPTS, $_POST['in_script'] );
 			update_option( self::OPT_AGREEONSCROLL, $_POST['agree_on_scroll'] );
 			update_option( self::OPT_AGREEONCLICK, $_POST['agree_on_click'] );
 			update_option( self::OPT_DEBUG, $_POST['debug'] );
+			update_option( self::OPT_DEBUG_VERBOSITY, $_POST['debug_verbosity']);
 			update_option( self::OPT_FIXED_ON, $_POST['fix_on'] );
 			update_option( self::OPT_COOKIE_EXPIRES, (int) $_POST['duration'] );
 			update_option( self::OPT_WHITELIST_COOKIES, implode( ",", $_POST['whitelist'] ) );
@@ -1091,19 +1161,21 @@ Class EUCookieLaw {
 
 			update_option( self::OPT_DEFAULT_IFRAME_SRC, $_POST['iframe_default_url'] );
 			update_option( self::OPT_DEFAULT_SCRIPT_SRC, $_POST['script_default_url'] );
+			update_option( self::OPT_DEFAULT_IMAGE_SRC, $_POST['image_default_url'] );
 
+			update_option( self::OPT_UNAPPLY_ON_URL, implode("\n", $_POST['disallowonurl'] ));
 
 			// Empty the cache if there is one of the known cache plugin
 			$allPlugins = get_plugins();
 
 			$cachePlugins = array(
-				'ZenCache'       => 'zencache::clear()',
-				'W3 Total Cache' => 'w3tc_flush_all()'
+				'ZenCache'       => array('zencache', 'clear'),
+				'W3 Total Cache' => 'w3tc_flush_all'
 			);
 
 			foreach ( $allPlugins as $pluginPath => $pluginData ) {
 				if ( isset( $cachePlugins[ $pluginData['Name'] ] ) && is_plugin_active( $pluginPath ) ) {
-					eval( $cachePlugins[ $pluginData['Name'] ] );
+					call_user_func( $cachePlugins[ $pluginData['Name'] ] );
 				}
 			}
 
@@ -1285,6 +1357,7 @@ Class EUCookieLaw {
 			<tr>
 				<th scope="row"><label for="fix_on"><?php _e( "Style", self::TEXTDOMAIN ); ?></label></th>
 				<?php
+
 				$availableStyles = apply_filters( 'eucookielaw_available_styles',
 					array(
 						''         => __( 'Default', self::TEXTDOMAIN ),
@@ -1374,14 +1447,18 @@ Class EUCookieLaw {
 
 	public function behaviorMetabox() {
 		$blockedDomains = preg_split( "#[\n;]#", get_option( self::OPT_3RDPDOMAINS, '' ) );
-		$lookInTags     = get_option( self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS );
+		$lookInTags     = explode("|", get_option( self::OPT_LOOKINTAGS, self::OPT_DEFAULT_LOOKINTAGS ) );
 		$lookInScripts  = get_option( self::OPT_LOOKINSCRIPTS, 'n' );
 
 		$cookieDuration = get_option( self::OPT_COOKIE_EXPIRES, 0 );
 		$whitelist      = explode( ",", get_option( self::OPT_WHITELIST_COOKIES, '' ) );
 
+		$disabledOnURL = explode( "\n", get_option(self::OPT_UNAPPLY_ON_URL, '') );
+
 		$iframeDefaultURL = get_option( self::OPT_DEFAULT_IFRAME_SRC, 'about:blank' );
 		$scriptDefaultURL = get_option( self::OPT_DEFAULT_SCRIPT_SRC, 'about:blank' );
+		$imageDefaultURL = get_option( self::OPT_DEFAULT_IMAGE_SRC, 'about:blank' );
+
 
 		?>
 		<table class="form-table">
@@ -1461,18 +1538,29 @@ Class EUCookieLaw {
 				</td>
 			</tr>
 			<tr>
-				<th scope="row"><label
-						for="look_in_tags"><?php _e( "Search domain only in this tags", self::TEXTDOMAIN ); ?></label>
+				<th scope="row">
+					<label><?php _e( "Search URL only in those tags", self::TEXTDOMAIN ); ?></label>
 				</th>
 				<td>
-					<input name="look_in_tags" type="text" id="look_in_tags"
-					       value="<?php echo htmlspecialchars( $lookInTags ); ?>" class="regular-text">
-
+					<?php
+					foreach ( $lookInTags as $item ) {
+						?>
+						<div class="eucookie-repeated-section">
+							<input name="look_in_tags[]" type="text"
+							       value="<?php echo htmlspecialchars( $item ); ?>" class="regular-text">
+						<span>
+			                <a href="#" class="button add"> + </a>
+			                <a href="#" class="button remove"> - </a>
+			            </span>
+						</div>
+					<?php
+					}
+					?>
 					<p>
 						<?php
 						echo sprintf(
-							__( "In the <code>%s</code> field you should report all the tags you want to look for the domain separated by a pipe (<code>|</code>)  (eg. <code>script|iframe|link</code>", self::TEXTDOMAIN ),
-							__( "Search domain only in this tags", self::TEXTDOMAIN )
+							__( "In the <code>%s</code> field you should report all the tags you want to look into for the given URLs", self::TEXTDOMAIN ),
+							__( "Search URL only in those tags", self::TEXTDOMAIN )
 						);
 						?>
 					</p>
@@ -1547,6 +1635,29 @@ Class EUCookieLaw {
 			</tr>
 			<tr>
 				<th scope="row"><label
+						for="image_default_url"><?php _e( "Replaced <code>img</code>s source:", self::TEXTDOMAIN ); ?></label>
+				</th>
+				<td>
+					<input name="image_default_url" type="text" id="image_default_url"
+					       value="<?php echo htmlspecialchars( $imageDefaultURL ); ?>" class="regular-text"><br/>
+					<a class="button button-secondary" href="#script_default_url"
+					   data-set-url="about:blank"><?php _e( "Empty page", self::TEXTDOMAIN ); ?></a>
+					<a class="button button-secondary" href="#image_default_url"
+					   data-set-url="<?php echo plugins_url( 'blocked/empty.gif', __FILE__ ); ?>"><?php _e( "Empty image", self::TEXTDOMAIN ); ?></a>
+					<a class="button button-secondary" href="#image_default_url"
+					   data-set-url="<?php echo plugins_url( 'cookie.png', __FILE__ ); ?>"><?php _e( "Default image", self::TEXTDOMAIN ); ?></a>
+					<?php
+					if ( file_exists( WP_PLUGIN_DIR . '/' . self::CUSTOMDOMAIN . '/blocked' ) && is_dir( WP_PLUGIN_DIR . '/' . self::CUSTOMDOMAIN . '/blocked' ) ) {
+						?>
+						<a class="button button-secondary" href="#image_default_url"
+						   data-set-url="<?php echo WP_PLUGIN_URL . '/' . self::CUSTOMDOMAIN . '/blocked/cookie.png' ?>"><?php _e( "Custom script", self::TEXTDOMAIN ); ?></a>
+					<?php
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label
 						for="duration"><?php _e( "Cookie duration (in days)", self::TEXTDOMAIN ); ?></label></th>
 				<td>
 					<input name="duration" type="number" id="duration"
@@ -1591,119 +1702,178 @@ Class EUCookieLaw {
 					</p>
 				</td>
 			</tr>
+			<tr>
+				<th scope="row">
+					<label><?php _e( "Disable if URL is one of the following", self::TEXTDOMAIN ); ?></label>
+				</th>
+				<td>
+					<?php
+					foreach ( $disabledOnURL as $item ) {
+						?>
+						<div class="eucookie-repeated-section">
+							<input name="disallowonurl[]" type="text"
+							       value="<?php echo htmlspecialchars( $item ); ?>" class="regular-text">
+						<span>
+			                <a href="#" class="button add"> + </a>
+			                <a href="#" class="button remove"> - </a>
+			            </span>
+						</div>
+					<?php
+					}
+					?>
+					<p>
+						<?php
+						_e( "If your site requires that the plugin must not be enabled on some specific URL then you can use the above fields to set the URL where EUCookieLaw should be disabled. The code accepts wildchar <code>*</code> (eg. <code>/api/*</code> means everything that starts with <code>/api/</code>)", self::TEXTDOMAIN );
+						?>
+					</p>
+				</td>
+			</tr>
 		</table>
 	<?php
 	}
 
-	public function outputMessagesSupport() {
-		$debugEnabled = get_option( self::OPT_DEBUG, 'n' );
-		$engine       = get_option( self::OPT_ENGINE, 'regexp' );
+	public function debugMetabox(){
+		$debugEnabled   = get_option( self::OPT_DEBUG, 'n' );
+		$verbosity      = get_option( self::OPT_DEBUG_VERBOSITY, '99');
 		?>
-	<h3><?php _e( "Enable debug", self::TEXTDOMAIN ); ?></h3>
-	<p>
-		<label>
-			<input type="radio" value="y" name="debug" <?php echo checked( $debugEnabled, 'y' ); ?> />
-			<?php _e( "Write on error log", self::TEXTDOMAIN ); ?>
-		</label><br />
-		<span class="on-debug on-debug-y">
-			<?php
-		echo sprintf(
+		<h3><?php _e( "Enable debug", self::TEXTDOMAIN ); ?></h3>
+		<p>
+			<label>
+				<input type="radio" value="y" name="debug" <?php echo checked( $debugEnabled, 'y' ); ?> />
+				<?php _e( "Write on error log", self::TEXTDOMAIN ); ?>
+			</label><br />
+			<span class="on-debug on-debug-y">
+				<?php
+			echo sprintf(
 
-			__( "Log file will be written in <code>%s</code>", self::TEXTDOMAIN ),
-			ini_get( 'error_log' )
-		);
-		?><br />
-		</span>
-		<label>
-			<input type="radio" value="file" name="debug" <?php echo checked( $debugEnabled, 'file' ); ?> />
-			<?php _e( "Write on log file", self::TEXTDOMAIN ); ?>
-		</label><br />
-		<span class="on-debug on-debug-file">
-			<?php
-		echo sprintf(
+				__( "Log file will be written in <code>%s</code>", self::TEXTDOMAIN ),
+				ini_get( 'error_log' )
+			);
+			?><br />
+			</span>
+			<label>
+				<input type="radio" value="file" name="debug" <?php echo checked( $debugEnabled, 'file' ); ?> />
+				<?php _e( "Write on log file", self::TEXTDOMAIN ); ?>
+			</label><br />
+			<span class="on-debug on-debug-file">
+				<?php
+			echo sprintf(
 
-			__( "Log file will be written in <code>%s</code>", self::TEXTDOMAIN ),
-			defined( 'EUCOOKIELAW_LOG_FILE' ) ? EUCOOKIELAW_LOG_FILE : ( WP_PLUGIN_DIR . '/' . self::CUSTOMDOMAIN . '/log.txt' ) );
-		?><br />
-		</span>
+				__( "Log file will be written in <code>%s</code>", self::TEXTDOMAIN ),
+				defined( 'EUCOOKIELAW_LOG_FILE' ) ? EUCOOKIELAW_LOG_FILE : ( WP_PLUGIN_DIR . '/' . self::CUSTOMDOMAIN . '/log.txt' ) );
+			?><br />
+			</span>
 
-		<label>
-			<input type="radio" value="n" name="debug" <?php echo checked( $debugEnabled, 'n' ); ?> />
-			<?php _e( 'No', self::TEXTDOMAIN ); ?>
-		</label>
-	</p>
+			<label>
+				<input type="radio" value="n" name="debug" <?php echo checked( $debugEnabled, 'n' ); ?> />
+				<?php _e( 'No', self::TEXTDOMAIN ); ?>
+			</label>
+		</p>
 
-	<p>
-		<?php _e( "When debug is enabled you can see what is happened and which rules are applied directly in the source of your generated HTML page", self::TEXTDOMAIN ) ?>
-	</p>
-
-    <h3><?php _e( "Render page with", self::TEXTDOMAIN ); ?></h3>
-    <p>
-		<label>
-			<input type="radio" value="dom" name="engine" <?php echo checked( $engine, 'dom' ); ?> />
-			<?php _e( 'DOMDocument', self::TEXTDOMAIN ); ?>
-		<?php
-		if ( ! class_exists( "DOMDocument" ) ) {
-			echo "<strong style='color: red'>",
-			__( "Not available", self::TEXTDOMAIN ),
-			"</strong>";
-		}
-		?>
-		</label>
-    </p>
-    <p>
-		<label>
-			<input type="radio" value="regexp" name="engine" <?php echo checked( $engine, 'regexp' ); ?> />
-			<?php _e( 'Regular Expression', self::TEXTDOMAIN ); ?>
-		</label>
-	</p>
-
-	<p>
-		<?php
-		_e( "It's reccomended to to use DOMDocument to render the page, however, if you encounter problems using this engine you can switch to Regular Expression engine", self::TEXTDOMAIN );
-		?>
-	</p>
-
-	<p>
-		<?php
-		_e( "If DOMDocument library is not available on your host then the Regular Expression engine will be used by default", self::TEXTDOMAIN );
-		?>
-	</p>
-
-	<p>
-		<span class="eucookielaw-info-submit"><strong>EUCookieLaw version <?php echo self::VERSION ?></strong></span>
-		<input type="hidden" name="nonce" value="<?php echo wp_create_nonce( __CLASS__ ); ?>" />
-		<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e( "Save" ); ?>">
-		<a href="#" id="export-settings" class="button button-secondary"><?php _e( "Export settings", self::TEXTDOMAIN ); ?></a>
-		<a href="#" id="import-settings" class="button button-secondary"><?php _e( "Import settings", self::TEXTDOMAIN ); ?></a>
-		<span class="eucookielaw-info-submit">
-				<?php echo sprintf(
-			__( "If you find this plugin useful, and since I've noticed that nobody did this script (as is) before of me, " .
-			    "I'd like to receive <a href=\"%s\">a donation</a> as thankful for the time You've earned for you, your " .
-			    "family and your hobbies! :)", self::TEXTDOMAIN ),
-			"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest" ); ?>
-
-		</span>
-
-		<?php
-		if ( $this->showMergeButton ) {
-			?>
-			<a href="<?php echo $_SERVER['REQUEST_URI'] ?>&write"
-			   class="button button-secondary"><?php _e( "Merge with cache plugin", self::TEXTDOMAIN ); ?></a>
-		<?php
-		}
-
-		if ( defined( 'WP_CACHE' ) && WP_CACHE === true ) {
-			?>
+		<p>
+			<?php _e( "When debug is enabled you can see which rules are applied and check for strange behaviors directly in the system error log or in a specific file according to debug verbosity", self::TEXTDOMAIN ) ?>
+		</p>
+		<div class="on-debug on-debug-file on-debug-y">
+			<h3><?php _e("Verbosity", self::TEXTDOMAIN); ?></h3>
 			<p>
-				<?php _e( "Note that, to ensure the cached contents uses the right settings from EUCookieLaw you need to empty your cache (according to specific cache plugin settings) once you have saved the configuration", self::TEXTDOMAIN ); ?>
+				<label>
+					<input type="radio" value="0" name="debug_verbosity" <?php echo checked( $verbosity, '0' ); ?> />
+					<?php _e( 'Silent', self::TEXTDOMAIN ); ?>
+				</label>
 			</p>
-		<?php
-		}
-		?>
-	</p>
+			<p>
+				<label>
+					<input type="radio" value="10" name="debug_verbosity" <?php echo checked( $verbosity, '10' ); ?> />
+					<?php _e( 'Normal', self::TEXTDOMAIN ); ?>
+				</label>
+			</p>
+			<p>
+				<label>
+					<input type="radio" value="20" name="debug_verbosity" <?php echo checked( $verbosity, '20' ); ?> />
+					<?php _e( 'High', self::TEXTDOMAIN ); ?>
+				</label>
+			</p>
+			<p>
+				<label>
+					<input type="radio" value="99" name="debug_verbosity" <?php echo checked( $verbosity, '99' ); ?> />
+					<?php _e( 'Verbose', self::TEXTDOMAIN ); ?>
+				</label>
+			</p>
+		</div>
 
-	<?php
+		<?php
+	}
+
+	public function outputMessagesSupport() {
+		$engine         = get_option( self::OPT_ENGINE, 'regexp' );
+		?>
+	    <h3><?php _e( "Render page with", self::TEXTDOMAIN ); ?></h3>
+	    <p>
+			<label>
+				<input type="radio" value="dom" name="engine" <?php echo checked( $engine, 'dom' ); ?> />
+				<?php _e( 'DOMDocument', self::TEXTDOMAIN ); ?>
+			<?php
+			if ( ! class_exists( "DOMDocument" ) ) {
+				echo "<strong style='color: red'>",
+				__( "Not available", self::TEXTDOMAIN ),
+				"</strong>";
+			}
+			?>
+			</label>
+	    </p>
+	    <p>
+			<label>
+				<input type="radio" value="regexp" name="engine" <?php echo checked( $engine, 'regexp' ); ?> />
+				<?php _e( 'Regular Expression', self::TEXTDOMAIN ); ?>
+			</label>
+		</p>
+
+		<p>
+			<?php
+			_e( "It's reccomended to to use DOMDocument to render the page, however, if you encounter problems using this engine you can switch to Regular Expression engine", self::TEXTDOMAIN );
+			?>
+		</p>
+
+		<p>
+			<?php
+			_e( "If DOMDocument library is not available on your host then the Regular Expression engine will be used by default", self::TEXTDOMAIN );
+			?>
+		</p>
+
+		<p>
+			<span class="eucookielaw-info-submit"><strong>EUCookieLaw version <?php echo self::VERSION ?></strong></span>
+			<input type="hidden" name="nonce" value="<?php echo wp_create_nonce( __CLASS__ ); ?>" />
+			<input type="submit" name="submit" id="submit" class="button button-primary" value="<?php _e( "Save" ); ?>">
+			<a href="#" id="export-settings" class="button button-secondary"><?php _e( "Export settings", self::TEXTDOMAIN ); ?></a>
+			<a href="#" id="import-settings" class="button button-secondary"><?php _e( "Import settings", self::TEXTDOMAIN ); ?></a>
+			<span class="eucookielaw-info-submit">
+					<?php echo sprintf(
+				__( "If you find this plugin useful, and since I've noticed that nobody did this script (as is) before of me, " .
+				    "I'd like to receive <a href=\"%s\">a donation</a> as thankful for the time You've earned for you, your " .
+				    "family and your hobbies! :)", self::TEXTDOMAIN ),
+				"https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest" ); ?>
+
+			</span>
+
+			<?php
+			if ( $this->showMergeButton ) {
+				?>
+				<a href="<?php echo $_SERVER['REQUEST_URI'] ?>&write"
+				   class="button button-secondary"><?php _e( "Merge with cache plugin", self::TEXTDOMAIN ); ?></a>
+			<?php
+			}
+
+			if ( defined( 'WP_CACHE' ) && WP_CACHE === true ) {
+				?>
+				<p>
+					<?php _e( "Note that, to ensure the cached contents uses the right settings from EUCookieLaw you need to empty your cache (according to specific cache plugin settings) once you have saved the configuration", self::TEXTDOMAIN ); ?>
+				</p>
+			<?php
+			}
+			?>
+		</p>
+
+		<?php
 
 	}
 

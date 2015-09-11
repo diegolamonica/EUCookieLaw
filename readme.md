@@ -60,13 +60,13 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
 * `duration` (`integer` default `0`) the number of days you want the cookie will expire. If `0`, it will produce a 
   session cookie. 
 
-* `remember` (`boolean` default `true`) if seted to `true`, the user rejection will be remember through the current session 
+* `remember` (`boolean` default `true`) if setted to `true`, the user rejection will be remember through the current session 
   else the choice will be valid only for the current page.   
 
 * `path` (`string` defualt `/`) defines the path where the consent cookie will be valid.
 
 * `domain` (`string` default setted to `window.location.host` value) defines the domain which to apply the cookie.  
-  **Note:** Define to `false` if the URL is defined by IP instead of domain.
+  **Note:** Define it to `false` if the URL is defined by IP instead of domain.
   
 * `cookieList` (`array` default `[]`) the list of techincal cookies the user cannot choose to reject. If some script try 
   to write one of the listed cookie it will be accepted.  
@@ -226,11 +226,18 @@ If you want to block specific domains you can define in your script (before incl
 
 * `EUCOOKIELAW_DISABLED` a boolean value, if `true` the class `EUCookieLawHeader` will not be instantiated when you include
   the `eucookielaw-cache.php` in your PHP scripts.
-  
+
 * `EUCOOKIELAW_DEBUG` a boolean value, if `true` the HTML output will report before each replacement the rule applied and at the beginning of the file it will show all the applied rules.  
   **Important** do not keep it enabled on production environment.  
   **Note:** in the beginning of your HTML file you can see `<!-- (EUCookieLaw Debug Enabled) -->` message followed by some other details. 
   Those messages are useful to understand what exactly is happening in your site.
+
+* `EUCOOKIELAW_DEBUG_VERBOSITY` (optional, default value is `99`) if `EUCOOKIELAW_DEBUG` is set to `true` this constants sets the
+  verbosity of the log. It can assume one of the following values:
+    * `0`: Silent
+    * `10`: Several debug log messages
+    * `20`: Most of debug log messages
+    * `99`: All the log messages
 
 * `EUCOOKIELAW_LOG_FILE` (optional) if defined and `EUCOOKIELAW_DEBUG` is `true` the output log will be written in the file defined in this constant.
 
@@ -250,6 +257,13 @@ If you want to block specific domains you can define in your script (before incl
 * `EUCOOKIELAW_BANNER_DISAGREE_LINK` the link to reject the consent. To let this script to manage by its own the rejection, the querystring on this link must contain also the argument **`__eucookielaw=disagree`**.  
   this mean that if the link is `http://example.com/my-page.html?arg1=a&arg2=b` then you should append the suggested argument as follows: `http://example.com/my-page.html?arg1=a&arg2=b&__eucookielaw=disagree`.
 
+* `EUCOOKIELAW_IGNORED_URLS` the list of site urls where not to apply the cookie policy. The list of urls must be separated by new line character (`\n`).  
+  In the URL is allowed the `*` wildchar that means everything.  
+  **Few Examples:**  
+  If you type `/sitemap.xml` as one of the ignored URL then, the exact match will be ignored.    
+  If you type `*/sitemap.xml` everything that ends with `/sitemap.xml` will be ignored.  
+  If you type `/sitemaps/*` everything in the site directory `/sitemaps/` will be ignored.  
+  If you type `/folder/*.xml` everything in the `/folder/` directory that has `.xml` extension will be ignored.
 
 ### How to manage by your own the reconsider link
 
@@ -351,6 +365,20 @@ I'd like to translate this plugin in all european languages, but I'm limited to 
 If you want to get involved in this plugin development, then fork the repository, translate in your language and make a pull request!
 
 # Changelog
+
+## 2.6.0
+* **NEW**: Now you can configure the URL where the banner must not be shown (Issue #69, #66, #61.
+* **NEW**: Now you can set the debug level
+* **IMPROVEMENTS**: Improved javascript to avoid full page reload
+* **IMPROVEMENTS**: Improved Regular Expression parsing Engine
+* **IMPROVEMENTS**: Improved DOMDocument parsing Engine
+* **IMPROVEMENTS**: \[WP\] Minor admin panel reorganization
+* **IMPROVEMENTS**: Better code readability in `eucookielaw-header.php`
+* **BUGFIX**: W3TC Page Cache flush causes EUCookieLaw to not work properly (Issue #65).
+* **BUGFIX**: Cache clear after saving not works properly causing a warning in error log file
+* Minor bugfixes and general improvements
+* updated documentation
+* updated the version number
 
 ## 2.5.0
 * **NEW**: Now you can define the domain where the cookie will be applied
@@ -459,7 +487,6 @@ to write data into some files for a better user experience.
 * updated the version number
 
 ## 1.5
-
 * **NEW:** Now the plugin is able to detect if the user agent and does not block contents if it is search engine
 * **NEW:** All the external contents are loaded after the user consent without page reloading ( Issues [#4](https://github.com/diegolamonica/EUCookieLaw/issues/4) and [#10](https://github.com/diegolamonica/EUCookieLaw/issues/10))
 * **NEW:** The script allows to define the consent duration in days (Issue [#7](https://github.com/diegolamonica/EUCookieLaw/issues/7), [#17](https://github.com/diegolamonica/EUCookieLaw/issues/17) and [#23](https://github.com/diegolamonica/EUCookieLaw/issues/23))

@@ -3,8 +3,8 @@ Contributors: Diego La Monica
 Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cookie block, cookie consent, cookie policy, cookie banner
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Requires at least: 4.0
-Tested up to: 4.2.4
-Stable tag: 2.5.0
+Tested up to: 4.3
+Stable tag: 2.6.0
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -48,6 +48,20 @@ For manual installation via FTP
 
 == Changelog ==
 
+= 2.6.0 =
+* **NEW**: Now you can configure the URL where the banner must not be shown (Issue #69, #66, #61).
+* **NEW**: Now you can set the debug level
+* **IMPROVEMENTS**: Improved javascript to avoid full page reload
+* **IMPROVEMENTS**: Improved Regular Expression parsing Engine
+* **IMPROVEMENTS**: Improved DOMDocument parsing Engine
+* **IMPROVEMENTS**: \[WP\] Minor admin panel reorganization
+* **IMPROVEMENTS**: Better code readability in `eucookielaw-header.php`
+* **BUGFIX**: W3TC Page Cache flush causes EUCookieLaw to not work properly (Issue #65).
+* **BUGFIX**: Cache clear after saving not works properly causing a warning in error log file
+* Minor bugfixes and general improvements
+* updated documentation
+* updated the version number
+
 = 2.5.0 =
 * **NEW**: Now you can define the domain where the cookie will be applied
 * **IMPROVEMENTS**: Javascript page reload forces contents from server (ignoring browser cache)
@@ -65,7 +79,7 @@ For manual installation via FTP
 * **NEW**: \[WP\] If user agent contains the information `EUCookieLaw:<VERSION_NUMBER>` then it will bypass the cookielaw block (used by the site analyzer).
 * **IMPROVEMENTS**: If you define an empty rule in disallowed URLS it will be ignored
 * **IMPROVEMENTS**: \[WP\] Several improvements on admin page and admin JavaScript
-* **IMPROVEMENTS**: On localhost (`127.0.0.1`) the domain defined for the technical cookie must be empty to grand compatibility with some browsers.
+* **IMPROVEMENTS**: On localhost (`127.0.0.1`) the domain defined for the technical cookie must be empty to grant compatibility with some browsers.
 * **BUGFIX**: `header_remove` method in PHP prior 5.3 does not exists.
 * **BUGFIX**: The non JavaScript version of banner was containing wrong consent/rejection URL
 * **BUGFIX**: \[WP\] With some W3 Total Cache configuration, EUCookieLaw was producing invalid output

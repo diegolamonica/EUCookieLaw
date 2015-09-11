@@ -225,41 +225,45 @@
 				new RegExp("([^?=&]+)(=([^&]*))?", "g"),
 				function($0, param, $2, value) {
 					param = decodeURIComponent(param);
-					value = decodeURIComponent(value);
-					if(/.*\[]$/.test(param)){
-						param = param.substr(0, param.length-2);
-						if(!$.isArray( queryString[param] )){
-							if(queryString[param] !== undefined)
-								queryString[param] = [ queryString[param] ];
-							else
-								queryString[param] = [];
+					value = decodeURIComponent(value).replace(/\+/g, ' ');
+					if(param!='nonce') {
+						if (/.*\[]$/.test(param)) {
+							param = param.substr(0, param.length - 2);
+							if (!$.isArray(queryString[param])) {
+								if (queryString[param] !== undefined)
+									queryString[param] = [queryString[param]];
+								else
+									queryString[param] = [];
+							}
+							if (value !== '') {
+								queryString[param].push(value);
+							}
+						} else {
+							queryString[param] = value;
 						}
-						if(value!=='') {
-							queryString[param].push(value);
-						}
-					}else {
-						queryString[param] = value;
 					}
 				}
 			);
 
 			for(var key in queryString){
-				var value = queryString[key],
-					selector = '[name="' + key + '"]';
+				if(key!='nonce') {
+					var value = queryString[key],
+						selector = '[name="' + key + '"]';
 
-				if( $.isArray( value ) ){
-					selector = '[name="' + key + '[]"]';
-					$(selector).parent('.eucookie-repeated-section').not(':first').remove();
-					selector += ":last";
-					for(var i = 0; i<= value.length; i++) {
-						if(i>0){
-							cloneItem( $(selector).parent('.eucookie-repeated-section') );
+					if ($.isArray(value)) {
+						selector = '[name="' + key + '[]"]';
+						$(selector).parent('.eucookie-repeated-section').not(':first').remove();
+						selector += ":last";
+						for (var i = 0; i <= value.length; i++) {
+							if (i > 0) {
+								cloneItem($(selector).parent('.eucookie-repeated-section'));
+							}
+							$(selector).val(value[i]);
 						}
-						$(selector).val( value[i] );
+					} else {
+						$(selector).not(':checkbox').not(':radio').val(value);
+						$(selector + '[value="' + value + '"]:radio').click();
 					}
-				}else {
-					$(selector).not(':checkbox').not(':radio').val(value);
-					$(selector+'[value="' + value +'"]:radio').click();
 				}
 			}
 		}
@@ -308,12 +312,14 @@
 				isRegExp = (thisURLvalue[0] == '.'),
 				thisURLreg = new RegExp( '^' + (isRegExp?'([a-z0-9\\-_]{1,63}\\.)*':'') + escapeRegExp(thisURLvalue.substr(isRegExp?1:0)) );
 
-			allURLs.not(this).each( function(){
-				if( thisURLreg.test( $(this).val() ) || thisURLvalue == $(this).val() ){
-					$(this).data('rel', thisURL);
-					invalidURLs.push( this );
-				}
-			});
+			if(thisURLvalue!='') {
+				allURLs.not(this).each(function () {
+					if (thisURLreg.test($(this).val()) || thisURLvalue == $(this).val()) {
+						$(this).data('rel', thisURL);
+						invalidURLs.push(this);
+					}
+				});
+			}
 		});
 		$(allURLs).not(invalidURLs).removeClass('invalid');
 		$(invalidURLs).addClass('invalid');

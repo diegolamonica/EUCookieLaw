@@ -9,6 +9,25 @@
  * @note This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
+
+if (!window.Node){
+	var Node =
+	{
+		ELEMENT_NODE                :  1,
+		ATTRIBUTE_NODE              :  2,
+		TEXT_NODE                   :  3,
+		CDATA_SECTION_NODE          :  4,
+		ENTITY_REFERENCE_NODE       :  5,
+		ENTITY_NODE                 :  6,
+		PROCESSING_INSTRUCTION_NODE :  7,
+		COMMENT_NODE                :  8,
+		DOCUMENT_NODE               :  9,
+		DOCUMENT_TYPE_NODE          : 10,
+		DOCUMENT_FRAGMENT_NODE      : 11,
+		NOTATION_NODE               : 12
+	};
+}
+
 var EUCookieLaw = (function (doc) {
 
 	var getScrollTop = function (){
@@ -237,7 +256,7 @@ var EUCookieLaw = (function (doc) {
 			writeInternalCookie('true', expiresCookie);
 			removeBanner();
 
-
+/*
 			var allIframes = doc.querySelectorAll('iframe');
 			for(var iframeIndex in allIframes){
 				if(allIframes[iframeIndex].getAttribute ) {
@@ -248,7 +267,7 @@ var EUCookieLaw = (function (doc) {
 					singleIframe.setAttribute('name', originalName);
 				}
 			}
-
+*/
 			if(settings.reload) window.location.reload(true);
 
 		};
@@ -288,12 +307,23 @@ var EUCookieLaw = (function (doc) {
 				if(theBanner) theBanner.parentNode.removeChild(theBanner);
 				theBannerId = '';
 			}
+
+			var scripts = document.querySelectorAll('script[data-cookielaw-index]');
+			for(var i = 0; i < scripts.length; i++ ){
+				var script = scripts[i],
+					idx = script.getAttribute('data-cookielaw-index'),
+					next = script.nextSibling;
+				if(next && next.className=='eucookielaw-replaced-content') next.parentNode.removeChild(next);
+				eucookieLawWriteHTML(script, idx);
+			}
 		};
 
 		if(settings.showBanner) {
 
 			var previousScrollTop = 0;
+
 			var waitReady = function () {
+				console.log(doc.readyState);
 				if ((doc.readyState === 'complete' || doc.readyState === 'interactive') && doc.body) {
 					body = doc.body;
 					previousScrollTop = getScrollTop();
@@ -467,3 +497,55 @@ var EUCookieLaw = (function (doc) {
 		};
 	};
 })(document);
+
+var EUCookieLawHTMLFragments = [];
+function eucookieLawWriteHTML(context, index){
+	console.log("writing content for context #"+index);
+	var docFrag = document.createDocumentFragment(),
+		div = document.createElement('div'),
+		parent = context.parentElement;
+
+	div.innerHTML = EUCookieLawHTMLFragments[index];
+	docFrag.appendChild(div);
+
+	while( div.childNodes.length > 0){
+		var currentNode = div.childNodes[0];
+		if(currentNode.nodeType == Node.ELEMENT_NODE && currentNode.tagName.toString().toLowerCase() == 'script'){
+
+			var async = currentNode.getAttribute('async'),
+				defer = currentNode.getAttribute('defer'),
+				src = currentNode.getAttribute('src'),
+				type = currentNode.getAttribute('type'),
+				html = currentNode.innerHTML,
+				scriptTag = document.createElement('script');
+
+			if(async!=undefined) scriptTag.setAttribute('async', async);
+			if(defer!=undefined) scriptTag.setAttribute('defer', defer);
+			if(src!=undefined) scriptTag.setAttribute('src', src);
+			if(type!=undefined) scriptTag.setAttribute('type', type);
+
+			scriptTag.innerHTML = html;
+
+			console.log("Detected script tag");
+			console.log(scriptTag);
+			if(async!=undefined){
+				console.log("is async");
+				document.body.appendChild(scriptTag);
+			}else{
+				console.log("is sync");
+				context.appendChild(scriptTag);
+			}
+
+			div.removeChild(currentNode);
+
+		}else{
+
+			docFrag.appendChild(currentNode);
+
+		}
+	}
+	docFrag.removeChild(div);
+
+	parent.insertBefore(docFrag, context);
+	parent.removeChild(context);
+}
