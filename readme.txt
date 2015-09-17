@@ -4,7 +4,7 @@ Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cook
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Requires at least: 4.0
 Tested up to: 4.3
-Stable tag: 2.6.0
+Stable tag: 2.6.1
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,12 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+
+= 2.6.1 =
+* **IMPROVEMENTS**: After consent the script raises the `window`'s `load` event to be compliant with some scripts
+* **IMPROVEMENTS**: Setted DOMDocument Engine to keep the original spacing to avoid some strange behavior
+* **BUGFIX**: In some circumstances the regexp engine turns in infinite loop
+* updated the version number
 
 = 2.6.0 =
 * **NEW**: Now you can configure the URL where the banner must not be shown (Issue #69, #66, #61).

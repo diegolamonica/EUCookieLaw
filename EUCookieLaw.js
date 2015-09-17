@@ -1,7 +1,7 @@
 /**
  * EUCookieLaw: simple object to accomplish european law requirements about cookie transmission to clients
  * @class EUCookieLaw
- * @version 2.5.0
+ * @version 2.6.1
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica
@@ -211,10 +211,7 @@ var EUCookieLaw = (function (doc) {
 						try {
 							f();
 						}catch(e){
-							if(settings.debug){
-								console.error("Something goes wrong in function execution", f.toString());
-							}
-
+							if (settings.debug) console.error("Something goes wrong in function execution", f.toString());
 						}
 						docWriteContext.parentNode.removeChild( docWriteContext );
 						docWriteContext = undefined;
@@ -233,7 +230,7 @@ var EUCookieLaw = (function (doc) {
 						+ (settings.domain?(";domain=" + settings.domain):'')
 						+ ";path=" + settings.path
 						+ expires;
-		}
+		};
 
 		this.enableCookies = function () {
 			didAChoice = true;
@@ -256,18 +253,6 @@ var EUCookieLaw = (function (doc) {
 			writeInternalCookie('true', expiresCookie);
 			removeBanner();
 
-/*
-			var allIframes = doc.querySelectorAll('iframe');
-			for(var iframeIndex in allIframes){
-				if(allIframes[iframeIndex].getAttribute ) {
-					var singleIframe = allIframes[iframeIndex],
-						originalName = singleIframe.getAttribute('name');
-
-					singleIframe.setAttribute('name', Math.random());
-					singleIframe.setAttribute('name', originalName);
-				}
-			}
-*/
 			if(settings.reload) window.location.reload(true);
 
 		};
@@ -316,6 +301,11 @@ var EUCookieLaw = (function (doc) {
 				if(next && next.className=='eucookielaw-replaced-content') next.parentNode.removeChild(next);
 				eucookieLawWriteHTML(script, idx);
 			}
+			var event = document.createEvent('Event');
+
+			event.initEvent('load', false, false);
+			window.dispatchEvent(event);
+
 		};
 
 		if(settings.showBanner) {
@@ -323,7 +313,7 @@ var EUCookieLaw = (function (doc) {
 			var previousScrollTop = 0;
 
 			var waitReady = function () {
-				console.log(doc.readyState);
+				if (settings.debug) console.log(doc.readyState);
 				if ((doc.readyState === 'complete' || doc.readyState === 'interactive') && doc.body) {
 					body = doc.body;
 					previousScrollTop = getScrollTop();
@@ -500,7 +490,7 @@ var EUCookieLaw = (function (doc) {
 
 var EUCookieLawHTMLFragments = [];
 function eucookieLawWriteHTML(context, index){
-	console.log("writing content for context #"+index);
+
 	var docFrag = document.createDocumentFragment(),
 		div = document.createElement('div'),
 		parent = context.parentElement;
@@ -526,13 +516,9 @@ function eucookieLawWriteHTML(context, index){
 
 			scriptTag.innerHTML = html;
 
-			console.log("Detected script tag");
-			console.log(scriptTag);
 			if(async!=undefined){
-				console.log("is async");
 				document.body.appendChild(scriptTag);
 			}else{
-				console.log("is sync");
 				context.appendChild(scriptTag);
 			}
 

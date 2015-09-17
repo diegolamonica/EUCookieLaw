@@ -366,6 +366,12 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
+## 2.6.1
+* **IMPROVEMENTS**: After consent the script raises the `window`'s `load` event to be compliant with some scripts
+* **IMPROVEMENTS**: Setted DOMDocument Engine to keep the original spacing to avoid some strange behavior
+* **BUGFIX**: In some circumstances the regexp engine turns in infinite loop
+* updated the version number
+
 ## 2.6.0
 * **NEW**: Now you can configure the URL where the banner must not be shown (Issue #69, #66, #61.
 * **NEW**: Now you can set the debug level

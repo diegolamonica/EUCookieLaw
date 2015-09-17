@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.4.0
+ * @version 2.6.1
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -9,7 +9,6 @@
  * @note This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
-
 if(!function_exists('gzdecode')) {
 
 	if(file_exists(dirname(__FILE__) . '/gzcompat.php')) {
@@ -23,7 +22,7 @@ if(!function_exists('gzdecode')) {
 
 class EUCookieLawHeader{
 
-	const VERSION = '2.4.0';
+	const VERSION = '2.6.1';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
@@ -55,6 +54,19 @@ class EUCookieLawHeader{
 
 	private $hasCookie = false;
 	private function log( $message, $level = self::LOG_LEVEL_VERBOSE,  $logOn = null){
+
+
+		if(is_array($message)){
+			if(count($message)>0) {
+				$this->log('Multiple messages:', $level, $logOn);
+				$this->log(serialize($message));
+				foreach ($message as $index => $msg) {
+					$this->log($msg, $level, $logOn);
+				}
+				$this->log('---', $level, $logOn);
+			}
+			return;
+		}
 		if(is_null($logOn)) $logOn = $this->logOn;
 		if(EUCOOKIELAW_DEBUG) {
 			switch ( $logOn && $level <= $this->logLevel ) {
@@ -105,7 +117,7 @@ class EUCookieLawHeader{
 		$isSearchEngine = false;
 		foreach ( $searchengines as $searchengine ) {
 			if ( ! empty( $_SERVER['HTTP_USER_AGENT'] ) and
-			     false !== strpos( strtolower( $_SERVER['HTTP_USER_AGENT'] ), strtolower( $searchengine ) )
+				false !== strpos( strtolower( $_SERVER['HTTP_USER_AGENT'] ), strtolower( $searchengine ) )
 			) {
 				$isSearchEngine = true;
 				break;
@@ -221,10 +233,10 @@ class EUCookieLawHeader{
 			'form'  => array('action', 'block', false),
 			'link'  => array('href', 'inline', false),
 			'param' => array('value', 'inline', false),
+			'embed' => array('value', 'inline', false),
 			'object'=> array('data', 'block', 'iframe'),
 			'iframe'=> array('src', 'block'),
 			'script'=> array('src', 'block'),
-			'input' => array('src', 'inline', false),
 			'input' => array('src', 'inline', 'img'),
 			'img'   => array('src', 'inline'),
 			'*'     => array('src', 'any', false)
@@ -266,66 +278,59 @@ class EUCookieLawHeader{
 		return $buffer;
 	}
 
-    private function getDefaultSourceByType($type){
+	private function getDefaultSourceByType($type){
 		!defined('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE') && define('EUCOOKIELAW_IFRAME_DEFAULT_SOURCE', 'about:blank');
-	    !defined('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE') && define('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE', 'about:blank');
-	    !defined('EUCOOKIELAW_IMAGE_DEFAULT_SOURCE') && define('EUCOOKIELAW_IMAGE_DEFAULT_SOURCE', 'about:blank');
+		!defined('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE') && define('EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE', 'about:blank');
+		!defined('EUCOOKIELAW_IMAGE_DEFAULT_SOURCE') && define('EUCOOKIELAW_IMAGE_DEFAULT_SOURCE', 'about:blank');
 
-	    $defaultUrl = "about:blank";
+		$defaultUrl = "about:blank";
 
-        switch( strtolower($type) ){
+		switch( strtolower($type) ){
 			case 'iframe':
 				$defaultUrl = EUCOOKIELAW_IFRAME_DEFAULT_SOURCE;
 				break;
 			case 'script':
 				$defaultUrl = EUCOOKIELAW_SCRIPT_DEFAULT_SOURCE;
 				break;
-	        case 'img':
-		        $defaultUrl = EUCOOKIELAW_IMAGE_DEFAULT_SOURCE;
-		        break;
+			case 'img':
+				$defaultUrl = EUCOOKIELAW_IMAGE_DEFAULT_SOURCE;
+				break;
 		}
-        return $defaultUrl;
-    }
+		return $defaultUrl;
+	}
 	private function replaceInSource( $regexp, $disallowedDomain, $buffer){
 		$this->log($regexp, self::LOG_LEVEL_HIGH);
-		$lastIndex = 0;
-		while ( preg_match( $regexp, $buffer, $items, PREG_OFFSET_CAPTURE, $lastIndex ) ) {
 
-			$matched = $items[0][0];
-			$offset = $items[0][1];
-			$tag = $items[1][0];
-			$attribute = $items[2][0];
-			$expectedAttribute = $this->getAttributeFor($tag);
+		if ( preg_match_all( $regexp, $buffer, $items, PREG_OFFSET_CAPTURE) ) {
 
+			foreach($items[0] as $index => $item){
 
-			if(strtolower($attribute) == strtolower($expectedAttribute[0]) &&
-				!preg_match("#^<[^>]data-cookielaw-index=#im", $matched) &&
-				!preg_match("#^<[^>]class=\"eucookielaw-replaced-content\"#im", $matched)
-			) {
+				$matched = $item[0];
 
-				$this->log("before", self::LOG_LEVEL_VERBOSE);
-				$this->log($matched, self::LOG_LEVEL_VERBOSE);
+				$tag = $items[1][$index][0];
+				$attribute = $items[2][$index][0];
 
-				$replaced = (EUCOOKIELAW_DEBUG ? ('<!-- (rule: ' . $disallowedDomain . ' - replaced) -->') : '') .
-					(self::REGEXP_COMMENT_START . str_replace( array(self::REGEXP_COMMENT_START,self::REGEXP_COMMENT_END), '', $matched) . self::REGEXP_COMMENT_END);
+				$expectedAttribute = $this->getAttributeFor($tag);
 
-				$this->log("after", self::LOG_LEVEL_VERBOSE);
-				$this->log($matched, self::LOG_LEVEL_VERBOSE);
+				if(strtolower($attribute) == strtolower($expectedAttribute[0]) &&
+					!preg_match("#^<[^>]data-cookielaw-index=#im", $matched) &&
+					!preg_match("#^<[^>]class=\"eucookielaw-replaced-content\"#im", $matched)
+				) {
 
-				$replacedTag = $this->getReplacedTagFor($tag);
+					$replaced = (EUCOOKIELAW_DEBUG ? ('<!-- (rule: ' . $disallowedDomain . ' - replaced) -->') : '').
+						(self::REGEXP_COMMENT_START . str_replace(array(self::REGEXP_COMMENT_START, self::REGEXP_COMMENT_END), '', $matched) . self::REGEXP_COMMENT_END);
 
-				if($replacedTag){
-					$url = $this->getDefaultSourceByType($replacedTag);
-					$replaced .= sprintf('<%s class="eucookielaw-replaced-content" src="%s"></%1$s>', $replacedTag, $url);
+					$replacedTag = $this->getReplacedTagFor($tag);
+
+					if ($replacedTag) {
+						$url = $this->getDefaultSourceByType($replacedTag);
+						$replaced .= sprintf('<%s class="eucookielaw-replaced-content" src="%s"></%1$s>', $replacedTag, $url);
+					}
+
+					$buffer = str_replace($matched, $replaced, $buffer);
+
 				}
-
-				$buffer = str_replace($matched, $replaced, $buffer);
-
-				$lastIndex = $offset + strlen($replaced);
-			}else{
-				$lastIndex = $offset + strlen($matched);
 			}
-
 		}
 		return $buffer;
 	}
@@ -412,30 +417,30 @@ class EUCookieLawHeader{
 		return $this->comments[$matches[1]];
 	}
 
-    private function hasDisallowedURL($url){
-        if (EUCOOKIELAW_DISALLOWED_DOMAINS != '') {
-            $disallowedDomains = preg_split("#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS);
-            foreach($disallowedDomains as $disallowedDomain) {
-	            $disallowedDomain = trim($disallowedDomain);
-	            # Avoid to threat empty strings (else it would mean everything is blocked)
-	            if(!empty($disallowedDomain)) {
-		            if ( $disallowedDomain[0] == '.' ) {
-			            $domainToScan = '([a-z0-9\-_]{1,63}\.)*' . preg_quote( substr( $disallowedDomain, 1 ), "#" );
-		            } else {
-			            $domainToScan = preg_quote( $disallowedDomain, "#" );
-		            }
+	private function hasDisallowedURL($url){
+		if (EUCOOKIELAW_DISALLOWED_DOMAINS != '') {
+			$disallowedDomains = preg_split("#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS);
+			foreach($disallowedDomains as $disallowedDomain) {
+				$disallowedDomain = trim($disallowedDomain);
+				# Avoid to threat empty strings (else it would mean everything is blocked)
+				if(!empty($disallowedDomain)) {
+					if ( $disallowedDomain[0] == '.' ) {
+						$domainToScan = '([a-z0-9\-_]{1,63}\.)*' . preg_quote( substr( $disallowedDomain, 1 ), "#" );
+					} else {
+						$domainToScan = preg_quote( $disallowedDomain, "#" );
+					}
 
-		            $pregString ='#\/\/' . $domainToScan . '#';
-		            if ( preg_match( $pregString, $url ) ) {
+					$pregString ='#\/\/' . $domainToScan . '#';
+					if ( preg_match( $pregString, $url ) ) {
 
-			            return true;
-		            }
-	            }
-            }
-        }
+						return true;
+					}
+				}
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
 
 	private function useRegExp( $buffer, $tags, $inScripts ){
 
@@ -476,12 +481,14 @@ class EUCookieLawHeader{
 						$buffer = '<!-- rule: ' . $domainToScan . ' -->' . "\n" . $buffer;
 					}
 
+					$this->log("Scanning for domain: $disallowedDomain", self::LOG_LEVEL_HIGH);
 					// Empty tags ( eg. <link href="..." />)
 					$this->log("single line replacements", self::LOG_LEVEL_HIGH);
 					$singleLineTagRegExp = '#<(' . implode("|", $inlineElements) . ')\W[^>]*('.$inlineAttributes.')=("|\')((http(s)?:)?//' . $domainToScan . '.*?)("|\').*?>#ms';
 					$buffer = $this->replaceInSource($singleLineTagRegExp, $disallowedDomain, $buffer);
 
 					$this->log("mulitline replacements", self::LOG_LEVEL_HIGH);
+
 					$multiLineTagRegExp = '#<(' . implode("|",$blockElements) . ')\W[^>]*('.$blockAttributes.')=("|\')((http(s)?:)?//' . $domainToScan . '.*?)(\\3)[^>]*>.*?</\\1>#ms';
 					$buffer = $this->replaceInSource($multiLineTagRegExp, $disallowedDomain, $buffer);
 
@@ -584,70 +591,73 @@ class EUCookieLawHeader{
 
 	private function useDOM( $buffer, $tags, $inScripts ){
 
-        libxml_use_internal_errors(true);
-        $doc = new DOMDocument();
-        $doc->encoding = 'utf-8';
+		libxml_use_internal_errors(true);
 
-	    $doc->loadHTML(mb_convert_encoding($buffer, 'HTML-ENTITIES', 'UTF-8'));
+		$doc = new DOMDocument();
 
-	    $this->log( "Buffer size is: " . strlen($buffer), self::LOG_LEVEL_HIGH);
+		$doc->preserveWhiteSpace = true;
+		$doc->encoding = 'utf-8';
 
-	    foreach($tags as $tag) {
-		    $this->log("Processing $tag", self::LOG_LEVEL_HIGH);
-		    $attribute = $this->getAttributeFor($tag);
-		    $attribute = $attribute[0];
+		$doc->loadHTML(mb_convert_encoding($buffer, 'HTML-ENTITIES', 'UTF-8'));
 
-            $elements = $doc->getElementsByTagName($tag);
-		    $this->log("Found " . $elements->length . ' with query selector ' . $tag.'[' . $attribute . ']', self::LOG_LEVEL_HIGH);
-            foreach($elements as $element) {
+		$this->log( "Buffer size is: " . strlen($buffer), self::LOG_LEVEL_HIGH);
 
-	            $url = $element->hasAttribute($attribute) ? $element->getAttribute($attribute) : null;
+		foreach($tags as $tag) {
+			$this->log("Processing $tag", self::LOG_LEVEL_HIGH);
+			$attribute = $this->getAttributeFor($tag);
+			$attribute = $attribute[0];
 
-	            if (!is_null($url) && !empty($url)) {
-		            if (!$this->isChildOfParsedNode($element)) {
-			            $this->log($element->tagName . " is not a child", self::LOG_LEVEL_HIGH);
-			            $this->log("Checking $url", self::LOG_LEVEL_HIGH);
+			$elements = $doc->getElementsByTagName($tag);
+			$this->log("Found " . $elements->length . ' with query selector ' . $tag.'[' . $attribute . ']', self::LOG_LEVEL_HIGH);
+			foreach($elements as $element) {
 
+				$url = $element->hasAttribute($attribute) ? $element->getAttribute($attribute) : null;
 
-			            if ($this->hasDisallowedURL($url)) {
-
-				            $this->parsedNodes[] = $element;
-
-				            $this->insertNodeReplacement($element);
-				            $this->encapsulateInBlockingComments($element);
-
-				            $this->log(">>> Found $url <<<", self::LOG_LEVEL_VERBOSE);
-
-			            }
-		            }
-	            }
-            }
-        }
-
-        if($inScripts) {
-            $this->log("looking in scripts", self::LOG_LEVEL_NORMAL);
-            $scripts = $doc->getElementsByTagName('script');
-
-            foreach($scripts as $script){
-
-                $buffer = $script->nodeValue;
-	            if( $this->hasDisallowedURL( $buffer ) ){
-	                $this->log(">>> Found <<<", self::LOG_LEVEL_VERBOSE);
-	                $this->insertNodeReplacement( $script );
-	                $this->encapsulateInBlockingComments($script);
-                }else{
-		            $this->log(">>> Not found <<<", self::LOG_LEVEL_VERBOSE);
-	            }
-
-            }
-
-        }
+				if (!is_null($url) && !empty($url)) {
+					if (!$this->isChildOfParsedNode($element)) {
+						$this->log($element->tagName . " is not a child", self::LOG_LEVEL_HIGH);
+						$this->log("Checking $url", self::LOG_LEVEL_HIGH);
 
 
-        $buffer = $doc->saveHTML();
-        libxml_use_internal_errors(false);
-        return $buffer;
-    }
+						if ($this->hasDisallowedURL($url)) {
+
+							$this->parsedNodes[] = $element;
+
+							$this->insertNodeReplacement($element);
+							$this->encapsulateInBlockingComments($element);
+
+							$this->log(">>> Found $url <<<", self::LOG_LEVEL_VERBOSE);
+
+						}
+					}
+				}
+			}
+		}
+
+		if($inScripts) {
+			$this->log("looking in scripts", self::LOG_LEVEL_NORMAL);
+			$scripts = $doc->getElementsByTagName('script');
+
+			foreach($scripts as $script){
+
+				$buffer = $script->nodeValue;
+				if( $this->hasDisallowedURL( $buffer ) ){
+					$this->log(">>> Found <<<", self::LOG_LEVEL_VERBOSE);
+					$this->insertNodeReplacement( $script );
+					$this->encapsulateInBlockingComments($script);
+				}else{
+					$this->log(">>> Not found <<<", self::LOG_LEVEL_VERBOSE);
+				}
+
+			}
+
+		}
+
+
+		$buffer = $doc->saveHTML();
+		libxml_use_internal_errors(false);
+		return $buffer;
+	}
 
 	private function logURLs(){
 		$disallowedDomains = preg_split("#[;\n]#", EUCOOKIELAW_DISALLOWED_DOMAINS);
@@ -703,27 +713,28 @@ class EUCookieLawHeader{
 				return $buffer;
 			}
 		}
-        $tags = explode( "|", EUCOOKIELAW_LOOK_IN_TAGS );
+		$tags = explode( "|", EUCOOKIELAW_LOOK_IN_TAGS );
 
+		$buffer = utf8_decode($buffer);
 		# Removing blocked sections
 		$buffer = preg_replace_callback("#" . preg_quote(self::REGEXP_COMMENT_START, '#') . "(.*?)" . preg_quote(self::REGEXP_COMMENT_END, '#') . "#ms", array($this, 'renderElementAsJSON'), $buffer);
 
 		if( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) {
 
-            $this->log("Processing via DOM", self::LOG_LEVEL_NORMAL);
-	        $this->logURLs();
-	        $buffer = $this->useDOM($buffer, $tags, EUCOOKIELAW_LOOK_IN_SCRIPTS);
-            $this->log("Dom Processed", self::LOG_LEVEL_NORMAL);
-        } else {
+			$this->log("Processing via DOM", self::LOG_LEVEL_NORMAL);
+			$this->logURLs();
+			$buffer = $this->useDOM($buffer, $tags, EUCOOKIELAW_LOOK_IN_SCRIPTS);
+			$this->log("Dom Processed", self::LOG_LEVEL_NORMAL);
+		} else {
 
-	        $this->log("Processing via RegExp", self::LOG_LEVEL_NORMAL);
-	        $this->log( class_exists('DOMDocument') ? "Even if the DOMDocument exists": "Because DOMDocument does not exists", self::LOG_LEVEL_NORMAL );
-	        $this->log(defined('EUCOOKIELAW_USE_DOM') ? "The EUCOOKIELAW_USE_DOM constant is defined and its value is " . var_export(EUCOOKIELAW_USE_DOM, true) : 'The EUCOOKIELAW_USE_DOM constant is not defined', self::LOG_LEVEL_NORMAL );
-	        $this->logURLs();
-	        $this->log('EUCOOKIELAW_LOOK_IN_SCRIPTS='. var_export(EUCOOKIELAW_LOOK_IN_SCRIPTS, true), self::LOG_LEVEL_HIGH);
-	        $buffer = $this->useRegExp($buffer, $tags, EUCOOKIELAW_LOOK_IN_SCRIPTS);
+			$this->log("Processing via RegExp", self::LOG_LEVEL_NORMAL);
+			$this->log( class_exists('DOMDocument') ? "Even if the DOMDocument exists": "Because DOMDocument does not exists", self::LOG_LEVEL_NORMAL );
+			$this->log(defined('EUCOOKIELAW_USE_DOM') ? "The EUCOOKIELAW_USE_DOM constant is defined and its value is " . var_export(EUCOOKIELAW_USE_DOM, true) : 'The EUCOOKIELAW_USE_DOM constant is not defined', self::LOG_LEVEL_NORMAL );
+			$this->logURLs();
+			$this->log('EUCOOKIELAW_LOOK_IN_SCRIPTS='. var_export(EUCOOKIELAW_LOOK_IN_SCRIPTS, true), self::LOG_LEVEL_HIGH);
+			$buffer = $this->useRegExp($buffer, $tags, EUCOOKIELAW_LOOK_IN_SCRIPTS);
 
-        }
+		}
 
 		$buffer = preg_replace_callback("#".preg_quote(self::REGEXP_COMMENT_START, '#')."(.*?)".preg_quote(self::REGEXP_COMMENT_END, '#')."#ms", array($this, 'renderElementAsJSON'), $buffer);
 
@@ -736,7 +747,7 @@ class EUCookieLawHeader{
 			$disagree = EUCOOKIELAW_BANNER_DISAGREE_BUTTON;
 			$disagreeLink = EUCOOKIELAW_BANNER_DISAGREE_LINK;
 			$disagreeHTML = "<a href=\"$disagreeLink\" class=\"disagree-button btn btn-danger\" onclick=\"(new EUCookieLaw()).reject(); return false;\">$disagree</a>";
-		 }else{
+		}else{
 			$disagreeHTML = "";
 		}
 		$htmlTemplate = <<<EOT
@@ -757,21 +768,21 @@ EOT;
 
 		if ( EUCOOKIELAW_DEBUG ) {
 			$buffer = "<!-- (EUCookieLaw Debug Enabled) -->\n" .
-			          "<!-- " . self::VERSION . " -->\n" .
-                  (( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) ? "<!-- Using DOMDocument -->\n": '').
-			          $headersDetails . "\n" .
-			          "<!-- Processed on " . date('Y-m-d H:i:s') . " -->\n ".
-			          "<!-- Searching in the following tags: " . EUCOOKIELAW_LOOK_IN_TAGS . ") -->\n" .
-                  (isset($expectedAttributes)?"<!-- Searching in the following attributes: " . $expectedAttributes . ") -->\n":'') .
-			          $buffer . "\n<!-- EUCookieLaw End -->";
+				"<!-- " . self::VERSION . " -->\n" .
+				(( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) ? "<!-- Using DOMDocument -->\n": '').
+				$headersDetails . "\n" .
+				"<!-- Processed on " . date('Y-m-d H:i:s') . " -->\n ".
+				"<!-- Searching in the following tags: " . EUCOOKIELAW_LOOK_IN_TAGS . ") -->\n" .
+				(isset($expectedAttributes)?"<!-- Searching in the following attributes: " . $expectedAttributes . ") -->\n":'') .
+				$buffer . "\n<!-- EUCookieLaw End -->";
 		}
 
-        if( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) {
+		if( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) {
 
-        } else {
+		} else {
 
-		$buffer = preg_replace_callback('#{@@EUCOOKIECOMMENTS\[(\d+)\]}#', array($this, 'restoreComments'), $buffer);
-        }
+			$buffer = preg_replace_callback('#{@@EUCOOKIECOMMENTS\[(\d+)\]}#', array($this, 'restoreComments'), $buffer);
+		}
 
 		if($this->isGZipped)
 			$buffer = gzencode($buffer);
