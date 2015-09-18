@@ -1,7 +1,6 @@
 /**
  * EUCookieLaw: simple object to accomplish european law requirements about cookie transmission to clients
  * @class EUCookieLaw
- * @version 2.6.1
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica

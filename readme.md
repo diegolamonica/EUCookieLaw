@@ -366,6 +366,10 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
+## 2.6.2
+* **BUGFIX**: Removed an accidentally leaved `utf8_decode` method that broke the output in several servers.
+* updated the version number
+
 ## 2.6.1
 * **IMPROVEMENTS**: After consent the script raises the `window`'s `load` event to be compliant with some scripts
 * **IMPROVEMENTS**: Setted DOMDocument Engine to keep the original spacing to avoid some strange behavior
