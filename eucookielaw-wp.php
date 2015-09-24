@@ -17,7 +17,7 @@ Class EUCookieLaw {
 	const TEXTDOMAIN = 'EUCookieLaw';
 	const CUSTOMDOMAIN = 'EUCookieLawCustom';
 	const MENU_SLUG = 'EUCookieLaw';
-	const VERSION = '2.6.2';
+	const VERSION = '2.6.3';
 	const CSS = 'EUCookieLaw_css';
 	const CUSTOMCSS = 'EUCookieLaw_css_custom';
 	const JS = 'EUCookieLaw_js';
@@ -105,6 +105,7 @@ Class EUCookieLaw {
 		}
 
 		add_action('w3tc_pgcache_flush', array($this, 'pgCacheFlush'));
+		add_action('wp_cache_gc', array($this, 'pubUpdateCacheDirectory'));
 	}
 
 	public function loadTranslations() {

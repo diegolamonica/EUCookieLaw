@@ -4,7 +4,7 @@ Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cook
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Requires at least: 4.0
 Tested up to: 4.3
-Stable tag: 2.6.2
+Stable tag: 2.6.3
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,12 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+
+= 2.6.3 =
+* **IMPROVEMENTS**: The regenerated contents via javascript (without page reload) are correctly parsed evenif there is a `document.write` call
+* **IMPROVEMENTS**: if in the query string is present the `__eucookielaw` argument it will be redirected (with `301: Moved Permanently`) to the same resource without the argument to avoid the Google duplicated tags warning.
+* **IMPROVEMENTS**: if not defined `EUCOOKIELAW_BANNER_ADDITIONAL_CLASS` will be automatically defined as empty.
+* updated the version number
 
 = 2.6.2 =
 * **BUGFIX**: Removed an accidentally leaved `utf8_decode` method that broke the output in several servers.

@@ -366,6 +366,12 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
+## 2.6.3
+* **IMPROVEMENTS**: The regenerated contents via javascript (without page reload) are correctly parsed evenif there is a `document.write` call
+* **IMPROVEMENTS**: if in the query string is present the `__eucookielaw` argument it will be redirected (with `301: Moved Permanently`) to the same resource without the argument to avoid the Google duplicated tags warning.
+* **IMPROVEMENTS**: if not defined `EUCOOKIELAW_BANNER_ADDITIONAL_CLASS` will be automatically defined as empty.
+* updated the version number
+
 ## 2.6.2
 * **BUGFIX**: Removed an accidentally leaved `utf8_decode` method that broke the output in several servers.
 * updated the version number

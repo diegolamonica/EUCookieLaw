@@ -104,11 +104,6 @@ var EUCookieLaw = (function (doc) {
 			}
 			return settings;
 		},
-	/*
-	 userStorage =   window.sessionStorage || // All browsers that supports sessionStorage uses it (is preferrable due the session rejection)
-	 window.localStorage ||  // Browsers that does supports localStorage and not sessionStorage
-	 { setItem: function(){}, getItem: function (){}, removeItem: function(){ } }, // Older browsers that does not support any kind of local storage
-	 */
 		originalCookie = doc.cookie, // For future use
 		scrolled = false,
 		instance = null,
@@ -291,19 +286,20 @@ var EUCookieLaw = (function (doc) {
 				if(theBanner) theBanner.parentNode.removeChild(theBanner);
 				theBannerId = '';
 			}
+			if(!settings.cookieRejected) {
+				var scripts = document.querySelectorAll('script[data-cookielaw-index]');
+				for (var i = 0; i < scripts.length; i++) {
+					var script = scripts[i],
+						idx = script.getAttribute('data-cookielaw-index'),
+						next = script.nextSibling;
+					if (next && next.className == 'eucookielaw-replaced-content') next.parentNode.removeChild(next);
+					eucookieLawWriteHTML(script, idx);
+				}
+				var event = document.createEvent('Event');
 
-			var scripts = document.querySelectorAll('script[data-cookielaw-index]');
-			for(var i = 0; i < scripts.length; i++ ){
-				var script = scripts[i],
-					idx = script.getAttribute('data-cookielaw-index'),
-					next = script.nextSibling;
-				if(next && next.className=='eucookielaw-replaced-content') next.parentNode.removeChild(next);
-				eucookieLawWriteHTML(script, idx);
+				event.initEvent('load', false, false);
+				window.dispatchEvent(event);
 			}
-			var event = document.createEvent('Event');
-
-			event.initEvent('load', false, false);
-			window.dispatchEvent(event);
 
 		};
 
@@ -465,14 +461,23 @@ var EUCookieLaw = (function (doc) {
 						break;
 					}
 				}
+			}else{
+
+				docWriteContext = document.currentScript;
+
 			}
 			if(docWriteContext) {
 				var docFrag = doc.createDocumentFragment(),
 					docTemp = doc.createElement('div'),
 					parentContainer = docWriteContext.parentNode;
+
+				while(parentContainer.tagName.toLowerCase() == 'script'){
+					parentContainer = parentContainer.parentNode;
+				}
+
 				docTemp.innerHTML = buffer;
 				while (docTemp.firstChild) docFrag.appendChild(docTemp.firstChild);
-				// docFrag.innerHTML = buffer;
+
 				if (docWriteContext.nextSibling) {
 					if(settings.debug) console.log("appending after");
 					parentContainer.insertBefore(docFrag, docWriteContext.nextSibling);
