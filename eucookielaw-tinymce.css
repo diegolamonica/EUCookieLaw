@@ -27,19 +27,41 @@ span.eucookielaw-info-submit{
 }
 .fixed-on-top{
     position: fixed;
-    top: 60px;
-    right: 20px;
+    top: 20px;
+    right: 1px;
     z-index: 9999;
     padding: 1em;
     border: 1px solid #ccc;
     background-color: #fff;
-    max-width: 300px;
+    max-width: 400px;
+    background-color: rgba(255,255,255,0.8);
 }
+
 .fixed-on-top span.eucookielaw-info-submit{
     display: block;
     padding: 0.5em;
+    font-size: 1em;
+    color: #000;
 }
+.fixed-on-top span.eucookielaw-info-submit:last-child{
+    max-height: 0;
+    height: 0;
+    padding: 0em;
+    overflow: hidden;
 
+    display: block;
+    margin: 0.5em;
+    font-size: 0.8em;
+    color: #444;
+
+    transition-property: max-height, padding;
+    transition-duration: 0.5s;
+}
+    .fixed-on-top:hover span.eucookielaw-info-submit:last-child{
+        max-height: 100px;
+        padding: 0.5em;
+        height: auto;
+    }
 div.alert {
     background: #fff;
     border-left: 4px solid #ffaa44;
@@ -98,3 +120,91 @@ ul.scanned-url{
     list-style: disc;
     margin-left: 1em;
 }
+
+#eucookielaw-languages-tab{
+    border: 1px solid #ccc;
+    border-bottom-width: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.language_box{
+    margin-top: 0;
+    border: 1px solid #ccc;
+    border-top-width: 0;
+}
+#eucookielaw-languages-tab li{
+    display: inline;
+    display: inline-block;
+    padding: 0.5em;
+    margin: 0.5em;
+    border: 1px solid #036;
+
+}
+    #eucookielaw-languages-tab li.current{
+        background-color: #ff8;
+        border: 1px solid #ddd;
+        -moz-box-shadow: 4px 4px 10px;
+        -webkit-box-shadow: 4px 4px 10px;;
+        box-shadow: 4px 4px 10px;
+    }
+#add-new-language-box{
+    color: #fff;
+    background: #369;
+}
+
+.mark-deleted input{
+    display: none;
+
+}
+.mark-deleted span{
+    display: block;
+    padding: 0.5em;
+    border: 1px solid #ccc;
+    background-color: #efe;
+}
+.mark-deleted span.deleted{
+    display: none;
+}
+.mark-deleted input:checked~span.active {
+    display: none;
+}
+
+.mark-deleted input:checked~span.deleted {
+    display: block;
+    background-color: #fee;
+}
+
+.highlight-html{
+    background-color: #eee;
+    border: 1px solid #ccc;
+    padding: 0.5em;
+}
+.pl-ent{
+    font-weight: bold;
+
+}
+
+.pl-e{
+    color: #844;
+}
+
+.pl-s{
+    font-style: italic;
+    color: #444;
+
+}
+
+ul.help{
+
+    list-style-type: square;
+    padding-left: 1em;
+    list-style-position: outside;
+    margin-left: 1em;
+
+}
+
+    ul.help li {
+        padding-left: 0em;
+        line-height: 1.8em;
+    }

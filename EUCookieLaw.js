@@ -26,28 +26,44 @@ if (!window.Node){
 		NOTATION_NODE               : 12
 	};
 }
-
+var EUCOOKIELAW_VERSION = '2.7.0';
 var EUCookieLaw = (function (doc) {
 
-	var getScrollTop = function (){
-		if(typeof pageYOffset != 'undefined'){
-			// most browsers except IE before #9
-			return pageYOffset;
-		}
-		else{
-			if(window.scrollY) return window.scrollY;
 
-			var body = doc.body, //IE 'quirks'
-				docEl = doc.documentElement; //IE with doctype
-			return (docEl)? docEl.clientHeight: body.clientHeight;
-		}
-	};
+	var firstLanguage = false,
+		getScrollTop = function (){
+			if(typeof pageYOffset != 'undefined'){
+				// most browsers except IE before #9
+				return pageYOffset;
+			}
+			else{
+				if(window.scrollY) return window.scrollY;
+
+				var body = doc.body, //IE 'quirks'
+					docEl = doc.documentElement; //IE with doctype
+				return (docEl)? docEl.clientHeight: body.clientHeight;
+			}
+		};
 
 	var removeHTMLBanner = function () {
 			var theHTMLBaner = doc.querySelector('#eucookielaw-in-html');
 			if(theBannerId!= 'eucookielaw-in-html' && theHTMLBaner){
 				theHTMLBaner.parentNode.removeChild(theHTMLBaner);
 			}
+		},
+		buildLanguageSwitcher = function(){
+			var langSwitcher = '';
+
+			if(settings.languages && typeof(settings.languages) === 'object' && Object.keys(settings.languages).length>1){
+				langSwitcher = '<ul id="eucookielaw-language-switcher">';
+				for(var lang in settings.languages) {
+					if(!firstLanguage) firstLanguage = lang;
+					var htmlLang = lang.replace(/</g, '&lt;').replace(/"/g, '&quot;');
+					langSwitcher += '<li onclick="(new EUCookieLaw()).switchLanguage(\''+ htmlLang + '\'); return false;">' + htmlLang + '</li>';
+				}
+				langSwitcher += '</ul>';
+			}
+			return langSwitcher;
 		},
 		buildBanner = function () {
 			removeHTMLBanner();
@@ -63,15 +79,17 @@ var EUCookieLaw = (function (doc) {
 					theDiv.className += " " + settings.classes;
 				}
 				theDiv.innerHTML =  '<div class="well">' +
-				((settings.tag!='')?('<' + settings.tag + ' class="banner-title">' + settings.bannerTitle + '</' + settings.tag + '>'):'') +
-				'<p class="banner-message">' + settings.message + '</p>' +
+				((settings.tag!='')?('<' + settings.tag + ' class="banner-title">' + '</' + settings.tag + '>'):'') +
+				'<div class="banner-message">' + '</div>' +
+				buildLanguageSwitcher() +
 				'<p class="banner-agreement-buttons">' +
-				((settings.disagreeLabel!= '') ? '<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject(); return false;">' + settings.disagreeLabel + '</a>' : '') +
-				'<a href="#" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies(); return false;">' + settings.agreeLabel + '</a>'+
+				((settings.languages[firstLanguage].disagreeLabel!= '') ? '<a href="#" class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject(); return false;">' + '</a>' : '') +
+				'<a href="#" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies(); return false;">' + '</a>'+
 				'</p>' +
 				'</div>';
 				var firstNode = body.childNodes[0];
 				body.insertBefore(theDiv, firstNode);
+				if(firstLanguage) (new EUCookieLaw).switchLanguage(firstLanguage);
 			}
 		},
 		setProperty = function (object, prop, _set, _get) {
@@ -93,6 +111,37 @@ var EUCookieLaw = (function (doc) {
 		hasRejectedCookie = function(){ return /__eucookielaw=rejected/.test(doc.cookie.toString()); },
 		hasCookie = function(){ return /__eucookielaw=/.test(doc.cookie.toString()) && !hasRejectedCookie() },
 		applySettings = function(settings) {
+			if(settings.languages && settings.languages['']) delete settings.languages[''];
+			if(settings.languages && typeof(settings.languages) === 'object' && Object.keys(settings.languages).length>1){
+				// I will remove the default language from defaults settings, because it's managed
+				delete defaultSettings.languages.Default;
+
+			}else{
+				/*
+				 * Deprecated items will replace default settings for now.
+				 */
+				if(settings.languages === undefined) settings.languages = {};
+				if(Object.keys( settings.languages).length == 0 ) {
+
+					settings.languages.Default = {
+						title: settings.bannerTitle,
+						message: settings.message,
+						agreeLabel: settings.agreeLabel,
+						disagreeLabel: settings.disagreeLabel
+					};
+					firstLanguage = 'Default';
+				}else if(settings.languages.Default === undefined && Object.keys( settings.languages).length == 1){
+					/*
+					 * If it is just one language defined, then it will put into the "Default" object
+					 */
+
+					var lonelyKey = Object.keys( settings.languages);
+					settings.languages.Default = settings.languages[lonelyKey];
+					delete settings.languages[lonelyKey];
+					firstLanguage = 'Default';
+				}
+
+			}
 
 			for (var key in defaultSettings) {
 				if (settings[key] === undefined) {
@@ -117,10 +166,31 @@ var EUCookieLaw = (function (doc) {
 			cookieEnabled: false,
 			cookieRejected: false,
 			showBanner: false,
+			/**
+			 * @deprecated
+			 */
 			bannerTitle: '',
+			/**
+			 * @deprecated
+			 */
 			message: 'La legge europea sulla privacy e la conservazione dei cookie richiede il tuo consenso prima di conservare i cookie. Me lo consenti?',
+			/**
+			 * @deprecated
+			 */
 			disagreeLabel: '',
+			/**
+			 * @deprecated
+			 */
 			agreeLabel: 'Agree',
+			languages: {
+				'Default': {
+					'title':  "",
+					'message':      'La legge europea sulla privacy e la conservazione dei cookie richiede il tuo consenso prima di conservare i cookie. Me lo consenti?',
+					'agreeLabel':   "Sono d'accordo",
+					'disagreeLabel':""
+				}
+			},
+			raiseLoadEvent: true,
 			reload: false,
 			tag: 'h1',
 			fixOn: 'top',
@@ -254,16 +324,30 @@ var EUCookieLaw = (function (doc) {
 			if(!hasCookie()){
 				if(settings.debug) console.log("Calling Reject");
 				didAChoice = true;
-				if(settings.remember){
-					writeInternalCookie('rejected');
-				}
+				if(settings.remember) writeInternalCookie('rejected');
 
 				settings.cookieRejected = true;
 				settings.cookieEnabled = false;
 				removeBanner();
 			}
-
 		};
+
+		function _switchLanguageElement( selector, html ){
+			var theElement = document.querySelector('#' +theBannerId + ' ' + selector);
+			if(theElement) theElement.innerHTML = html;
+		}
+
+		this.switchLanguage = function( lang ) {
+
+			var info = settings.languages[lang];
+			if (info) {
+				_switchLanguageElement('.banner-title',     info.title);
+				_switchLanguageElement('.banner-message',   info.message);
+				_switchLanguageElement('.agree-button',     info.agreeLabel);
+				_switchLanguageElement('.disagree-button',  info.disagreeLabel);
+			}
+		};
+
 		this.reconsider = function(){
 
 			writeInternalCookie('', 'Thu, 01 Jan 1970 00:00:01 GMT');
@@ -296,9 +380,10 @@ var EUCookieLaw = (function (doc) {
 					eucookieLawWriteHTML(script, idx);
 				}
 				var event = document.createEvent('Event');
-
-				event.initEvent('load', false, false);
-				window.dispatchEvent(event);
+				if(settings.raiseLoadEvent) {
+					event.initEvent('load', false, false);
+					window.dispatchEvent(event);
+				}
 			}
 
 		};
@@ -338,7 +423,7 @@ var EUCookieLaw = (function (doc) {
 			if (settings.agreeOnScroll){
 				previousScrollTop = getScrollTop();
 				evt(window, 'scroll', function () {
-
+					window.title = 'scrolled? ' + (new Date().getMilliseconds());
 					if(!scrolled && body && Math.abs(getScrollTop() - previousScrollTop)>settings.minScroll && !didAChoice) {
 						scrolled = true;
 						instance.enableCookies();

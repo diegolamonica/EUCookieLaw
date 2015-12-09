@@ -39,22 +39,23 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
     padding: 1em;
 }
 
-.eucookielaw-banner .well h1.banner-title {
+.eucookielaw-banner .well .banner-title {
     border-bottom: 1px solid #ccc;
+    display: block;
 }
 
-.eucookielaw-banner .well p.banner-message {
+.eucookielaw-banner .well .banner-message {
     line-height: 150%;
 }
 
-.eucookielaw-banner .well p.banner-agreement-buttons {
+.eucookielaw-banner .well .banner-agreement-buttons {
     text-align: right;
     border-top: 1px dashed #666;
     margin-top: 1em;
 }
 
-.eucookielaw-banner .well p.banner-agreement-buttons a.disagree-button,
-.eucookielaw-banner .well p.banner-agreement-buttons a.agree-button {
+.eucookielaw-banner .well .banner-agreement-buttons .disagree-button,
+.eucookielaw-banner .well .banner-agreement-buttons .agree-button {
     border: 1px solid #888;
     background-color: #666;
     padding: 0.5em;
@@ -66,12 +67,12 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
     text-decoration: none;
 }
 
-.eucookielaw-banner .well p.banner-agreement-buttons a.disagree-button{
+.eucookielaw-banner .well .banner-agreement-buttons .disagree-button{
     background-color: #f0ad4e;
     color: #444;
 }
 
-.eucookielaw-banner .well p.banner-agreement-buttons a.agree-button{
+.eucookielaw-banner .well .banner-agreement-buttons .agree-button{
     background-color: #aaff44;
     color: #444;
 }
@@ -91,12 +92,12 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
 .eucookielaw-banner.light a{
     color: #800;
 }
-.eucookielaw-banner.light .well p.banner-agreement-buttons{
+.eucookielaw-banner.light .well .banner-agreement-buttons{
     border-top: 0;
     margin: 0;
 }
 
-    .eucookielaw-banner.light .well p.banner-agreement-buttons a.btn{
+    .eucookielaw-banner.light .well .banner-agreement-buttons .btn{
         border: 0;
         text-decoration: underline;
         background-color: transparent;
@@ -119,12 +120,12 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
 .eucookielaw-banner.grass a{
     color: #486;
 }
-.eucookielaw-banner.grass .well p.banner-agreement-buttons{
+.eucookielaw-banner.grass .well .banner-agreement-buttons{
     border-top: 0;
     margin: 0;
 }
 
-.eucookielaw-banner.grass .well p.banner-agreement-buttons a.btn{
+.eucookielaw-banner.grass .well .banner-agreement-buttons .btn{
     color: #080;
     border: 0;
     text-decoration: underline;
@@ -132,7 +133,7 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
     padding: 0;
     margin: 0 0.3em;
 }
-.eucookielaw-banner.grass .well p.banner-agreement-buttons a.disagree-button{
+.eucookielaw-banner.grass .well .banner-agreement-buttons .disagree-button{
     color: #800;
 }
 
@@ -153,26 +154,28 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
 }
 
 
-.eucookielaw-banner.floating .well h1.banner-title {
+.eucookielaw-banner.floating .well .banner-title {
     padding: 0.5em;
     background-color: #eee;
     color: #444;
 }
 
-.eucookielaw-banner.floating .well p.banner-message {
+.eucookielaw-banner.floating .well .banner-message {
     padding: 0.5em;
     color: #444;
 }
 
-.eucookielaw-banner.floating a{
+.eucookielaw-banner.floating a,
+.eucookielaw-banner.floating li{
     color: #486;
 }
-.eucookielaw-banner.floating .well p.banner-agreement-buttons{
+
+.eucookielaw-banner.floating .well .banner-agreement-buttons{
     border-top: 0;
     margin: 0;
 }
 
-.eucookielaw-banner.floating .well p.banner-agreement-buttons a.btn{
+.eucookielaw-banner.floating .well .banner-agreement-buttons .btn{
     color: #080;
     border: 0;
     text-decoration: underline;
@@ -180,7 +183,7 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
     padding: 0;
     margin: 0 0.3em;
 }
-.eucookielaw-banner.floating .well p.banner-agreement-buttons a.disagree-button{
+.eucookielaw-banner.floating .well .banner-agreement-buttons .disagree-button{
     color: #800;
 }
 
@@ -198,5 +201,20 @@ body.admin-bar .eucookielaw-banner.fixedon-top{
     font-weight: bold;
     text-align: center;
     display: inline-block;
+}
 
+ul#eucookielaw-language-switcher {
+    display: block;
+    list-style: no;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#eucookielaw-language-switcher li {
+    display: inline;
+    padding: 0.5em 0.5em;
+    border: 1px solid #ccc;
+    margin: 0.4em;
+    background-color: #fff;
 }

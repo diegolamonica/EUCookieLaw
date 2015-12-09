@@ -1,10 +1,10 @@
-=== Plugin Name ===
+=== EUCookieLaw ===
 Contributors: Diego La Monica
 Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cookie block, cookie consent, cookie policy, cookie banner
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Requires at least: 4.0
-Tested up to: 4.3
-Stable tag: 2.6.3
+Tested up to: 4.4
+Stable tag: 2.7.0
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,23 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+
+= 2.7.0 =
+* **NEW**: In the JavaScript file `EUCookieLaw.js` now is available the variable `EUCOOKIELAW_VERSION` with the number of current version.
+* **NEW**: Now you can set the cookie policy's banner with multiple languages
+* **NEW**: \[WP\] Improved WordPress admin interface to a better management of the multiple languages.
+* **NEW**: \[WP\] Multilingual no requires any multilingual plugins
+* **NEW**: Now you can choose to raise the load event on user agreement.
+* **IMPROVEMENTS**: The regexp eingine now takes care about Internet Explorer Conditional Comments (solves issue #84)
+* **IMPROVEMENTS**: \[WP\] every minute the cron checks if the configuration files into cache are available to solve definitively the issues against WP Super Cache and W3 Total Cache plugins.
+* **IMPROVEMENTS**: \[WP\] When `wp-config.php` is not available in the site root, the plugin notify what to manually wrtite into it.
+* **IMPROVEMENTS**: Now the banner message is nested into a `div` to better fit the most sites/users requirements.
+* **BUGFIX**: \[WP\] Google Maps and Google Fonts were switched in *fast service selection* group
+* **NOTICE**: Some definitions were marked as deprecated since this version
+* Minor bugfixes and general improvements
+* Updated documentation
+* Updated translation files
+* Updated the version number
 
 = 2.6.3 =
 * **IMPROVEMENTS**: The regenerated contents via javascript (without page reload) are correctly parsed evenif there is a `document.write` call

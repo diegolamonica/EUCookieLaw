@@ -1,15 +1,16 @@
 # EUCookieLaw
 
-  EUROPA websites must follow the Commission's guidelines on [privacy and data protection](http://ec.europa.eu/ipg/basics/legal/data_protection/index_en.htm) and inform 
+>  EUROPA websites must follow the Commission's guidelines on [privacy and data protection](http://ec.europa.eu/ipg/basics/legal/data_protection/index_en.htm) and inform 
   users that cookies are not being used to gather information unnecessarily.
    
-  The [ePrivacy directive](http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:32002L0058:EN:HTML) – more specifically Article 5(3) – requires prior informed consent for storage for access to information stored on a user's terminal equipment. 
+>  The [ePrivacy directive](http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=CELEX:32002L0058:EN:HTML) – more specifically Article 5(3) – requires prior informed consent for storage for access to information stored on a user's terminal equipment. 
   In other words, you must ask users if they agree to most cookies and similar technologies (e.g. web beacons, Flash cookies, etc.) before the site starts to use them.
 
-  For consent to be valid, it must be informed, specific, freely given and must constitute a real indication of the individual's wishes.
+>  For consent to be valid, it must be informed, specific, freely given and must constitute a real indication of the individual's wishes.
 
-In this context this class lives.
+In this context this solution lives.
 It simply alters the default `document.cookie` behavior to disallow cookies to be written on the client side, until the user accept the agreement.
+At the same time it blocks all third-party domains you have configured as cookie generators.
 
 # Donations
 
@@ -29,7 +30,20 @@ Add this code in your HTML `head` section (better if before all others JavaScrip
 <script src="EUCookieLaw.js"></script>
 <script>
     new EUCookieLaw({
-        message: 'In base ad una direttiva europea sulla privacy e la protezione dei dati personali, è necessario il tuo consenso prima di conservare i cookie nel tuo browser. Me lo consenti?'
+        languages: {
+            Italiano: {
+                title: 'Informativa sull\'uso dei cookie',
+                message: 'In base ad una direttiva europea sulla privacy e la protezione dei dati personali, è necessario il tuo consenso prima di conservare i cookie nel tuo browser. Me lo consenti?',
+                agreeLabel: 'Sono d\'accordo',
+                disagreeLabel: 'Non sono d\'accordo'
+            },
+            English: {
+                title: 'Cookie Policy',
+                message: 'According to european directive about privacy you need to agree this policy before surfing this site.',
+                agreeLabel: 'I agree',
+                disagreeLabel: 'I disagree'
+            }
+        } 
     });
 </script>
 ```
@@ -47,7 +61,8 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
   in conjunction with the server side part.
 
 * `message` is the message used by the default confirmation dialog. In the case of `showBanner`, the `message` can be an 
-  HTML content.
+  HTML content.  
+  > **NOTE: Since version 2.7.0 this property is deprecated in favor of `languages.<language>` object**
 
 * `debug` (`boolean` default `false`)  if `true` will show in browser console some useful informations about script execution.
 
@@ -65,30 +80,40 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
 
 * `path` (`string` defualt `/`) defines the path where the consent cookie will be valid.
 
-* `domain` (`string` default setted to `window.location.host` value) defines the domain which to apply the cookie.  
-  **Note:** Define it to `false` if the URL is defined by IP instead of domain.
+* `domain` (`string` default setted to `window.location.host` value) defines the domain which to apply the cookie.    
+  > **Note:** Define it to `false` if the URL is defined by IP instead of domain.
   
 * `cookieList` (`array` default `[]`) the list of techincal cookies the user cannot choose to reject. If some script try 
   to write one of the listed cookie it will be accepted.  
-  **TIP:** You can use the `*` wildchar as suffix to intend all the cookies that starts with a specific value (eg. `__umt*` will mean `__umta`, `__umtc` and so on).
+  > **TIP:** You can use the `*` wildchar as suffix to intend all the cookies that starts with a specific value (eg. `__umt*` will mean `__umta`, `__umtc` and so on).
    
 * `blacklist` (`array` default `[]`) if some script try to inject HTML into the page trhough the `document.write` it will be allowed only if
   in the code is not present something that points to one of the `blacklist`ed domain.
 
+* `reload` (`boolean` default `false`) if set to true, the page will be reloaded on user agreement.
+
+* `raiseLoadEvent` (`boolean` default `true`) if set to `true` the page will raise the `load` event on user consent. 
+  > **Note:** some javascript analisys tools requires the event load to be fired, at the same time some scripts would
+   consider the `load` event to be fired just one time in the life of the page so you should check if all the script on
+   your page is compliant with the same behavior to determine which is the best setting for you and your page.
+
 #### Options available only if `showBanner` is `true` 
 
 * `id` (`string` default `boolean` `false`) if not `false` the banner box will not be created and the script will assume
-  that the banner is the one referred by the `id`.  
-  **NOTE:** do not set the hash (`#`) before the id (eg. **OK** `id: 'my-box'` **NO** `id: '#my-banner'`)
+  that the banner is the one referred by the `id`.    
+  > **NOTE:** do not set the hash (`#`) before the id (eg. **OK** `id: 'my-box'` **NO** `id: '#my-banner'`)
   
-* `tag` if defined the script will use it as predefined tag for title content of the banner. 
-   If not defined the banner title will not be shown.
+* `tag` if not empty, the script will use it as predefined tag for title content of the banner. The default value is **`h1`**. 
+   If the value is an empty string the title is not shown. 
    
-* `bannerTitle` will be the banner title
+* `bannerTitle` will be the banner title, it will be used only if the `tag` value is set.  
+  > **NOTE: Since version 2.7.0 this property is deprecated in favor of `languages.<language>` object**
+  
+* `agreeLabel` the agree button label. Default is `I agree`  
+  > **NOTE: Since version 2.7.0 this property is deprecated in favor of `languages.<language>` object**
 
-* `agreeLabel` the agree button label. Default is `I agree`
-
-* `disagreeLabel` the disagreement button label. Default is an empty string. If not given the disagree button will not be shown.
+* `disagreeLabel` the disagreement button label. Default is an empty string. If not given the disagree button will not be shown.  
+  > **NOTE: Since version 2.7.0 this property is deprecated in favor of `languages.<language>` object**
 
 * `fixOn` it defines if the banner is fixed on top or bottom, default value, if not defined or empty, is `top`. Allowed values are `top`, `bottom` or `static`.
 
@@ -101,6 +126,28 @@ the `EUCookieLaw` initialization expect an Object with the following properties:
 * `minScroll` a number (strictly depending on `agreeOnScroll`=`true`) which defines the number of pixels the user need to scroll to apply consent. The default value if not defined is `100`. 
 
 * `agreeOnClick` if `true`, the user express its conesnt by clicking wherever on the page (but outside the banner).
+
+* `languages` allows the banner translation, this property keep a set of languages which ones contains the relative informations about the title, message and button labels.
+```javascript
+var settings = {
+    // ...
+    languages: {
+        Italiano: {
+            title: 'titolo',
+            message: 'messaggio del banner',
+            agreeLabel: "sono d'accordo",
+            disagreeLabel: "non sono d'accordo"
+        },
+        English: {
+            title: '...',
+            message: '...',
+            agreeLabel: "...",
+            disagreeLabel: "..."
+        },
+        // ... and so on...
+    }
+};
+```
 
 Once `EUCookieLaw` is initialized, you can access some useful methods in your JavaScript:
 
@@ -115,7 +162,10 @@ Once `EUCookieLaw` is initialized, you can access some useful methods in your Ja
 * `reconsider` allows the user to review again the banner and take a new choice.
   To invoke this function from everywhere in your policy page you can create a link or a button with the following code:  
 ```html
-<a href="#" onclick="(new EUCookieLaw()).reconsider(); return false;">Reconsider my choice</a>
+<a href="#" 
+   onclick="(new EUCookieLaw()).reconsider(); return false;">
+      Reconsider my choice
+</a>
 ```
 
 #### Custom agreement example
@@ -182,6 +232,8 @@ With agreement banner ([see demo](http://diegolamonica.info/demo/cookielaw/demo3
 
 ## Server Side
 
+> **NOTE:** The server side usage is available only for servers which has PHP installed.
+
 The server-side script intercept the output buffer and will remove the sent cookies when user has not yet approved the
 agreement.
 
@@ -198,17 +250,20 @@ require_once 'eucookielaw-header.php';
 However if the server already detected that the user agreed the cookie law agreement the 
 script does not override the built-in function.
 
+> **NOTE:** Some servers does not have enabled by default the PHP zlib extension, then you should upload the file `gzcompat.php` too to your server. The file is included on demand by `eucookielaw-header.php` if needed.
+To ensure the right inclusion, both files (`eucookielaw-header.php` and `gzcompat.php` must reside in the same folder).
+
 Further if you want to block some javascript elements you can do it by adding a `data-eucookielaw="block"` attribute to the `script` elements.
  
 ### Server side constants
 If you want to block specific domains you can define in your script (before including `eucookielaw-header.php`) two constants:
 
 * `EUCOOKIELAW_USE_DOM` if `true` and the class `DOMDocument` is available, then the default parser will use `DOMDocument`. In all other cases the `Regular Expressions` will be used to parse page contents.  
-  **Note:** It's suggested to enable this option as default. Disable it only if the page results is a damaged content.
+  > **Note:** It's suggested to enable this option as default. Disable it only if the page results is a damaged content.
 
 * `EUCOOKIELAW_DISALLOWED_DOMAINS` a semicolon (`;`) separated list of URLs disallowed since the user does not accept the agreement.  
   Each space before and/or after each URL will be removed.  
-  **Note:** if the domain start by a dot (eg. `.google.com`) then all the related subdomains will be included in the temporary blacklist.
+  > **Note:** if the domain start by a dot (eg. `.google.com`) then all the related subdomains will be included in the temporary blacklist.
   
 * `EUCOOKIELAW_LOOK_IN_TAGS` a pipe (`|`) separated list of tags where to search for the domains to block.   
   If not specified, the deafault tags are `iframe`, `script`, `link`, `img`, `embed` and `param`.
@@ -218,18 +273,18 @@ If you want to block specific domains you can define in your script (before incl
 * `EUCOOKIELAW_SEARCHBOT_AS_HUMAN` if `true` the search engines will be threated as humans (same contents, to avoid accidental [cloacking](https://en.wikipedia.org/wiki/Cloaking) contents).
 
 * `EUCOOKIELAW_ALLOWED_COOKIES` the list (**must be a comma separated value**) of techincal cookies that the server is allowed to generate and that will not removed from headers.  
-  **TIP \#1:** You can use the `*` wildchar as suffix to intend all the cookies that starts with a specific value (eg. `__umt*` will mean `__umta`, `__umtc` and so on).  
-  **TIP \#2:** If you use just `*` all cookies generated by your Web Site are allowed.
+  > **TIP \#1:** You can use the `*` wildchar as suffix to intend all the cookies that starts with a specific value (eg. `__umt*` will mean `__umta`, `__umtc` and so on).  
+  > **TIP \#2:** If you use just `*` all cookies generated by your Web Site are allowed.
 
 * `EUCOOKIELAW_AUTOSTART` if you want to invoke late the `ob_start` then you should define this constant to `true`.  
-  **NOTE:** If you set this option to `true` you need to invoke lately by your own the `buffering` class method. 
+  > **NOTE:** If you set this option to `true` you need to invoke lately by your own the `buffering` class method. 
 
 * `EUCOOKIELAW_DISABLED` a boolean value, if `true` the class `EUCookieLawHeader` will not be instantiated when you include
   the `eucookielaw-cache.php` in your PHP scripts.
 
 * `EUCOOKIELAW_DEBUG` a boolean value, if `true` the HTML output will report before each replacement the rule applied and at the beginning of the file it will show all the applied rules.  
-  **Important** do not keep it enabled on production environment.  
-  **Note:** in the beginning of your HTML file you can see `<!-- (EUCookieLaw Debug Enabled) -->` message followed by some other details. 
+  > **Important** do not keep it enabled on production environment.  
+  > **Note:** in the beginning of your HTML file you can see `<!-- (EUCookieLaw Debug Enabled) -->` message followed by some other details. 
   Those messages are useful to understand what exactly is happening in your site.
 
 * `EUCOOKIELAW_DEBUG_VERBOSITY` (optional, default value is `99`) if `EUCOOKIELAW_DEBUG` is set to `true` this constants sets the
@@ -259,12 +314,36 @@ If you want to block specific domains you can define in your script (before incl
 
 * `EUCOOKIELAW_IGNORED_URLS` the list of site urls where not to apply the cookie policy. The list of urls must be separated by new line character (`\n`).  
   In the URL is allowed the `*` wildchar that means everything.  
-  **Few Examples:**  
-  If you type `/sitemap.xml` as one of the ignored URL then, the exact match will be ignored.    
-  If you type `*/sitemap.xml` everything that ends with `/sitemap.xml` will be ignored.  
-  If you type `/sitemaps/*` everything in the site directory `/sitemaps/` will be ignored.  
-  If you type `/folder/*.xml` everything in the `/folder/` directory that has `.xml` extension will be ignored.
+  > **Few Examples:**  
+  > If you type `/sitemap.xml` as one of the ignored URL then, the exact match will be ignored.    
+  > If you type `*/sitemap.xml` everything that ends with `/sitemap.xml` will be ignored.  
+  > If you type `/sitemaps/*` everything in the site directory `/sitemaps/` will be ignored.  
+  > If you type `/folder/*.xml` everything in the `/folder/` directory that has `.xml` extension will be ignored.
 
+* `EUCOOKIELAW_BANNER_LANGUAGES` a string containing json encoded data relative to languages.  
+   To produce this definition constant is worth to use the following script:
+   
+   ```php
+   
+   $languages = array(
+       'English' => array(
+            'title' => 'English title of the banner',
+            'message' => 'English message of the banner',
+            'agreeLabel' => 'Agree',
+            'disagreeLabel' => 'Disagree'
+       ),
+       'Italiano' => array(
+           'title' => 'Titolo del banner in italiano',
+           'message' => 'Messaggio del banner in italiano',
+           'agreeLabel' => 'Consento',
+           'disagreeLabel' => 'Non consento'
+       )
+   );
+   
+   define('EUCOOKIELAW_BANNER_LANGUAGES', json_encode($languages) );
+   
+   ```
+   
 ### How to manage by your own the reconsider link
 
 While WordPress has its own shortcode to manage the reconsider button, in the standalone version you should produce a link with a specific argument into the querystring: `__eucookielaw=reconsider`.
@@ -304,6 +383,8 @@ The purpose of this shortcode is to wrap contents into a post and make it availa
 ```
 ### How to make the banner title and message translate in the proper language.
 
+> **NOTE:** This section is no more useful since the new settings for multiple languages.
+
 I've implemented the custom text-domain files ( `EUCookieLawCustom-it_IT.po` / `EUCookieLawCustom-it_IT.po` ).  
 Remember that to get custom translations properly work, **you need to move the `EUCookieLawCustom` directory at the `plugins` directory level**.
 
@@ -332,14 +413,28 @@ The structure of generated banner (with the default heading tag settings) is the
 
 ```html
 <div class="eucookielaw-banner fixedon-top" id="eucookielaw-135">
-  <div class="well">
-    <h1 class="banner-title">The banner title</h1>
-    <p class="banner-message">The banner message</p>
-    <p class="banner-agreement-buttons text-right">
-      <a class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">Disagree</a> 
-      <a class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies();">Agree</a>
-    </p>
-  </div>
+	<div class="well">
+		<h1 class="banner-title">
+			The banner title
+		</h1>
+		<div class="banner-message">
+			The banner message
+		</div>
+		<ul id="eucookielaw-language-switcher">
+		    <li onclick="(new EUCookieLaw()).switchLanguage('English'); return false;">
+		        <a href="/?__eucookielaw=switch:English">English</a>
+		    </li>
+		    <li onclick="(new EUCookieLaw()).switchLanguage('Italiano'); return false;">
+		        <a href="/?__eucookielaw=switch:Italiano">
+		            Italiano
+		        </a>
+		    </li>
+		</ul>
+		<p class="banner-agreement-buttons text-right">
+			<a class="disagree-button btn btn-danger" onclick="(new EUCookieLaw()).reject();">Disagree</a> 
+			<a class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies();">Agree</a>
+		</p>
+	</div>
 </div>
 ```
 
@@ -348,6 +443,8 @@ starts always with `eucookielaw-` and then followed by a number between `0` and 
 * `.well` is the inner container
 * `h1.banner-title` is the banner title
 * `p.banner-message` is the banner html message
+* `#eucookielaw-language-switcher` is the list of languages which the banner is available. 
+  It is not visible if just one lanuages is available.
 * `p.banner-agreement-buttons.text-right` is the buttons container for the agree/disagree buttons
 * `a.disagree-button` is the disagree button it implements the CSS classes `btn` and `btn-danger`
 * `a.disagree-button` is the agree button it implements the CSS classes `btn` and `btn-primary`
@@ -355,7 +452,7 @@ starts always with `eucookielaw-` and then followed by a number between `0` and 
 You can make your own CSS to build a custom aspect for the banner. 
 However, if you prefer, you can start from the bundled CSS.  
 
-**NOTE:** If you are using the script as WordPress plugin, the custom CSS must be located in the directory `wp-content/plugins/EUCookieLawCustom/` 
+> **NOTE:** If you are using the script as WordPress plugin, the custom CSS must be located in the directory `wp-content/plugins/EUCookieLawCustom/` 
 and must be named `eucookielaw.css`. Then it will be read in conjunction with the default plugin CSS.
 
 # Contribute
@@ -365,6 +462,23 @@ I'd like to translate this plugin in all european languages, but I'm limited to 
 If you want to get involved in this plugin development, then fork the repository, translate in your language and make a pull request!
 
 # Changelog
+
+## 2.7.0
+* **NEW**: In the JavaScript file `EUCookieLaw.js` now is available the variable `EUCOOKIELAW_VERSION` with the number of current version.
+* **NEW**: Now you can set the cookie policy's banner with multiple languages
+* **NEW**: \[WP\] Improved WordPress admin interface to a better management of the multiple languages.
+* **NEW**: \[WP\] Multilingual no requires any multilingual plugins
+* **NEW**: Now you can choose to raise the load event on user agreement.
+* **IMPROVEMENTS**: The regexp eingine now takes care about Internet Explorer Conditional Comments (solves issue #84)
+* **IMPROVEMENTS**: \[WP\] every minute the cron checks if the configuration files into cache are available to solve definitively the issues against WP Super Cache and W3 Total Cache plugins. 
+* **IMPROVEMENTS**: \[WP\] When `wp-config.php` is not available in the site root, the plugin notify what to manually wrtite into it.
+* **IMPROVEMENTS**: Now the banner message is nested into a `div` to better fit the most sites/users requirements.
+* **BUGFIX**: \[WP\] Google Maps and Google Fonts were switched in *fast service selection* group
+* **NOTICE**: Some definitions were marked as deprecated since this version  
+* Minor bugfixes and general improvements
+* Updated documentation
+* Updated translation files
+* Updated the version number
 
 ## 2.6.3
 * **IMPROVEMENTS**: The regenerated contents via javascript (without page reload) are correctly parsed evenif there is a `document.write` call

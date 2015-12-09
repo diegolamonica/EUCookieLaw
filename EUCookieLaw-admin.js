@@ -8,7 +8,7 @@
  * @note This program is distributed in the hope that it will be useful - WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
-(function($) {
+jQuery(document).ready(function($) {
 	if( pagenow !== 'eu-cookie-law_page_EUCookieLaw-settings') return;
 
 	var EUCookieLawServices = {};
@@ -109,10 +109,10 @@
 		'.google.com',
 		'.googleapis.com'
 	]);
-	EUCookieLawAddService('google-maps', [
+	EUCookieLawAddService('google-fonts', [
 		'fonts.googleapis.com'
 	]);
-	EUCookieLawAddService('google-fonts', [
+	EUCookieLawAddService('google-maps', [
 		'maps.google.com',
 		'maps.googleapis.com',
 		'www.google.com/maps',
@@ -343,4 +343,82 @@
 	}).change();
 
 
-})(jQuery);
+
+
+	function getTabLabel(lang){
+		return $('#eucookielaw-languages-tab > li').filter( function(){ return $(this).data('eucookielaw-lang') == lang });
+	}
+
+	function showLang(event){
+		event.preventDefault();
+		$('#eucookielaw-languages-tab > li.current').not(this).removeClass('current');
+		var lang = $(this).addClass('current').data('eucookielaw-lang');
+		var theRightTab = $('.language_box').filter( function(){return $(this).data('eucookielaw-lang-ref') == lang });
+
+		$('.language_box').not(theRightTab).hide();
+		theRightTab.show();
+
+	}
+
+	function addLang( lang, content ){
+		if( eucookielawLanguages[lang] && getTabLabel(lang) > 0 ) return false;
+		eucookielawLanguages[lang] = content;
+		var li = $('<li />')
+				.html(lang)
+				.insertBefore( '#add-new-language-box')
+				.data( 'eucookielaw-lang', lang)
+				.on('click', showLang);
+		var baseTab = $('.language_box:last');
+		var cloned = baseTab.clone();
+		cloned.insertBefore(baseTab).data('eucookielaw-lang-ref', lang);
+
+		$('*[data="eucookielaw-binded-lang"]', cloned).val( lang );
+
+		$('*[data="eucookielaw-binded-title"]', cloned).val( content.title );
+		$('*[data="eucookielaw-binded-message"]', cloned).val( content.message );
+		$('*[data="eucookielaw-binded-agree"]', cloned).val( content.agreeLabel);
+		$('*[data="eucookielaw-binded-disagree"]', cloned).val( content.disagreeLabel );
+		$('.mark-deleted input', cloned).val( lang).prop('checked', false);
+		li.click();
+	}
+
+	$('#add-new-language-box').on('click', function(){
+		addLang('New language', {
+			title: '',
+			message: '',
+			agreeLabel: '',
+			disagreeLabel: ''
+		});
+	});
+
+	$(document).on('change', '*[data="eucookielaw-binded-lang"]', function(event){
+
+		var lang = $(this).val(),
+			liCurrent = $('#eucookielaw-languages-tab > li.current'),
+			curLang = liCurrent.data('eucookielaw-lang-ref'),
+			languageBox = $('.language_box:visible');
+
+		eucookielawLanguages[lang] = eucookielawLanguages[curLang];
+
+		delete(eucookielawLanguages[curLang]);
+
+		liCurrent
+				.text(lang)
+				.data('eucookielaw-lang', lang);
+		languageBox.data('eucookielaw-lang-ref', lang);
+		$('.mark-deleted input', languageBox).val(lang);
+	} );
+
+	if(eucookielawLanguages){
+		if(eucookielawLanguages['']) delete eucookielawLanguages[''];
+		for(var lang in eucookielawLanguages){
+			console.log(lang);
+			addLang( lang, eucookielawLanguages[lang]);
+		}
+		$('#eucookielaw-languages-tab > li:first').click();
+	}else{
+		console.log(eucookielawLanguages);
+	}
+
+
+});

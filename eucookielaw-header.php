@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.6.3
+ * @version 2.7.0
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -22,7 +22,7 @@ if(!function_exists('gzdecode')) {
 
 class EUCookieLawHeader{
 
-	const VERSION = '2.6.3';
+	const VERSION = '2.7.0';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
@@ -42,8 +42,10 @@ class EUCookieLawHeader{
 	private $isGZipped = false;
 	private $scriptIndex = -1;
 	private $commentIndex = -1;
+	private $condComIndex = -1;
 	private $scripts = array();
 	private $comments = array();
+	private $condCom = array();
 
 	private $logOn      = self::WRITE_ON_ERROR_LOG;
 	private $logLevel   = self::LOG_LEVEL_VERBOSE;
@@ -68,8 +70,8 @@ class EUCookieLawHeader{
 			return;
 		}
 		if(is_null($logOn)) $logOn = $this->logOn;
-		if(EUCOOKIELAW_DEBUG) {
-			switch ( $logOn && $level <= $this->logLevel ) {
+		if(EUCOOKIELAW_DEBUG && $level <= $this->logLevel ) {
+			switch ( $logOn ) {
 				case self::WRITE_ON_FILE:
 
 					if(!defined('EUCOOKIELAW_LOG_FILE')){
@@ -395,6 +397,16 @@ class EUCookieLawHeader{
 		return EUCOOKIELAW_DEBUG ? "<!--\n $buffer \n-->": '';
 	}
 
+	public function removeConditionalComments($matches){
+		$this->condComIndex+=1;
+		$this->condCom[$this->condComIndex] = $matches[0];
+		return '{@@EUCOOKIECONDCOM['. $this->condComIndex. ']}';
+	}
+
+	public function restoreConditionalComments($matches){
+		return $this->condComIndex[$matches[1]];
+	}
+
 	public function removeInlineScripts($matches){
 		$this->scriptIndex+=1;
 		$this->scripts[$this->scriptIndex] = $matches[0];
@@ -449,9 +461,12 @@ class EUCookieLawHeader{
 		# stripping out comments from HTML
 		$this->log("Starting with replacements", self::LOG_LEVEL_HIGH);
 
+		$buffer = preg_replace_callback('#<!--\[[^\]]\]>#', array($this, 'removeConditionalComments'), $buffer);
+
 		$buffer = preg_replace_callback('#<script[^>]*>.*?</script>#ims', array($this, 'removeInlineScripts'), $buffer);
 		$buffer = preg_replace_callback("#(\r?\n)*<!--.*?-->(\r?\n)*#ims", array($this, 'preserveComments'), $buffer);
 		$buffer = preg_replace_callback('#\{@@EUCOOKIESCRIPT\[(\d+)\]\}#', array($this, 'restoreInlineScripts'), $buffer);
+		$buffer = preg_replace_callback('#{@@EUCOOKIECONDCOM\[(\d+)\]\}#', array($this, 'restoreConditionalComments'), $buffer);
 
 		$this->log("Removing blocked scripts", self::LOG_LEVEL_HIGH);
 		$buffer = $this->removeBlockedScripts($buffer);
@@ -679,6 +694,7 @@ class EUCookieLawHeader{
 	}
 
 	public function buffering( $buffer ) {
+
 		$this->log( "Ob level is: " . ob_get_level(), self::LOG_LEVEL_VERBOSE );
 		$obhandlers = ob_list_handlers();
 		foreach( $obhandlers as $hi => $handler){
@@ -741,10 +757,49 @@ class EUCookieLawHeader{
 		$theTitle = EUCOOKIELAW_BANNER_TITLE;
 		$theMessage = EUCOOKIELAW_BANNER_DESCRIPTION;
 		$agree = EUCOOKIELAW_BANNER_AGREE_BUTTON;
+		$disagree = defined('EUCOOKIELAW_BANNER_DISAGREE_BUTTON') ? EUCOOKIELAW_BANNER_DISAGREE_BUTTON : '';
+
 		$additionalClass = EUCOOKIELAW_BANNER_ADDITIONAL_CLASS;
 		$agreeLink = EUCOOKIELAW_BANNER_AGREE_LINK;
-		if(defined('EUCOOKIELAW_BANNER_DISAGREE_BUTTON') && EUCOOKIELAW_BANNER_DISAGREE_BUTTON!='') {
-			$disagree = EUCOOKIELAW_BANNER_DISAGREE_BUTTON;
+
+		$theTitle .=' <!-- '. EUCOOKIELAW_BANNER_LANGUAGES . ' -->';
+		$languageSwitcher = '<!-- Elements to switch between allowed languages -->';
+
+		if( defined('EUCOOKIELAW_BANNER_LANGUAGES') && EUCOOKIELAW_BANNER_LANGUAGES !== false ){
+
+			$langs = json_decode( EUCOOKIELAW_BANNER_LANGUAGES );
+			$uri = $_SERVER['REQUEST_URI'];
+			if(preg_match('#\?.*$#', $uri)){
+				$uri .= '&__eucookielaw=switch:';
+			} else{
+				$uri .= '?__eucookielaw=switch:';
+			}
+			$languageSwitcher .= "<ul id=\"eucookielaw-language-switcher\">";
+			$languageNames = array_keys((array)$langs);
+			$curLang = isset($_COOKIE['__eucookielaw_curlang']) ? $_COOKIE['__eucookielaw_curlang'] : $languageNames[0];
+
+			foreach($langs as $lang => $langData){
+				$languageSwitcher .=
+						$lang ?
+								('<li onclick="(new EUCookieLaw()).switchLanguage(\''.htmlspecialchars($lang).'\'); return false;">' .
+									'<a href="' . $uri . $lang . '">'.
+										htmlspecialchars($lang) .
+									'</a>'.
+								'</li>') : '';
+
+				if($lang == $curLang){
+					$theTitle   = $langData->title;
+					$theMessage = $langData->message;
+					$agree      = $langData->agreeLabel;
+					$disagree   = $langData->disagreeLabel;
+				}
+
+			}
+			$languageSwitcher .= "</ul>";
+		}
+
+		if( !empty($disagree) ) {
+
 			$disagreeLink = EUCOOKIELAW_BANNER_DISAGREE_LINK;
 			$disagreeHTML = "<a href=\"$disagreeLink\" class=\"disagree-button btn btn-danger\" onclick=\"(new EUCookieLaw()).reject(); return false;\">$disagree</a>";
 		}else{
@@ -754,7 +809,8 @@ class EUCookieLawHeader{
 		<div class="eucookielaw-banner $additionalClass" id="eucookielaw-in-html">
 			<div class="well">
 				<h1 class="banner-title">$theTitle</h1>
-				<p class="banner-message">$theMessage</p>
+				<div class="banner-message">$theMessage</div>
+				$languageSwitcher
 				<p class="banner-agreement-buttons text-right">
 					$disagreeHTML
 					<a href="$agreeLink" class="agree-button btn btn-primary" onclick="(new EUCookieLaw()).enableCookies(); return false;">$agree</a>
@@ -794,7 +850,8 @@ EOT;
 !defined('EUCOOKIELAW_DOMAIN') && define('EUCOOKIELAW_DOMAIN', ($_SERVER['REMOTE_ADDR'] == '127.0.0.1')?'': $_SERVER['HTTP_HOST']);
 
 if(isset($_GET['__eucookielaw'])){
-	switch($_GET['__eucookielaw']){
+	$action = $_GET['__eucookielaw'];
+	switch($action){
 		case 'agree':
 			setcookie('__eucookielaw','true', time()+31556926, '/', EUCOOKIELAW_DOMAIN );
 			break;
@@ -805,6 +862,16 @@ if(isset($_GET['__eucookielaw'])){
 			setcookie('__eucookielaw', null, time()-31556926, '/', EUCOOKIELAW_DOMAIN);
 			unset($_COOKIE['__eucookielaw']);
 			break;
+		default:
+
+			if(preg_match('#^switch:(.*)#', $action, $lang)){
+				$newLang = $lang[1];
+				setcookie('__eucookielaw_curlang', $newLang, null, '/', EUCOOKIELAW_DOMAIN);
+			}
+
+
+			break;
+
 	}
 
 	$uri = preg_replace('#__eucookielaw=[^&]*&?#', '', $_SERVER['REQUEST_URI']);

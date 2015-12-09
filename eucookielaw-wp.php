@@ -17,7 +17,7 @@ Class EUCookieLaw {
 	const TEXTDOMAIN = 'EUCookieLaw';
 	const CUSTOMDOMAIN = 'EUCookieLawCustom';
 	const MENU_SLUG = 'EUCookieLaw';
-	const VERSION = '2.6.3';
+	const VERSION = '2.7.0';
 	const CSS = 'EUCookieLaw_css';
 	const CUSTOMCSS = 'EUCookieLaw_css_custom';
 	const JS = 'EUCookieLaw_js';
@@ -34,6 +34,7 @@ Class EUCookieLaw {
 	const OPT_LOOKINSCRIPTS = 'eucookie_law_inscript';
 	const OPT_LOOKINTAGS = 'eucookie_law_lookintags';
 	const OPT_RELOAD = 'eucookie_law_reload';
+	const OPT_RAISE_LOAD_EVENT = 'eucookie_law_raise_load_event';
 	const OPT_ENABLED = 'eucookie_law_enabled';
 	const OPT_ENABLEDONLOGIN = 'eucookie_law_enabled_on_login';
 	const OPT_BOT_AS_HUMANS = 'eucookie_law_bot_as_humans';
@@ -44,7 +45,7 @@ Class EUCookieLaw {
 	const OPT_FIXED_ON = 'eucookie_law_banner_fixed_on';
 	const OPT_BANNER_STYLE = 'eucookie_law_banner_style';
 	const OPT_REMEMBER_CHOICE = 'eucookie_law_remember_choice';
-
+	const OPT_LANGUAGES = 'eucookie_law_languages';
 	const OPT_COOKIE_EXPIRES = 'eucookie_law_banner_cookie_expires';
 	const OPT_WHITELIST_COOKIES = 'eucookie_law_whitelist_cookies';
 	const OPT_DEBUG = 'eucookie_law_debug';
@@ -56,8 +57,6 @@ Class EUCookieLaw {
 	const OPT_DEFAULT_IFRAME_SRC = 'default_iframe_src';
 	const OPT_DEFAULT_SCRIPT_SRC = 'default_script_src';
 	const OPT_DEFAULT_IMAGE_SRC = 'default_image_src';
-
-
 
 	const OPT_UNAPPLY_ON_URL = 'eucookielaw_unapply_on_url';
 
@@ -71,18 +70,35 @@ Class EUCookieLaw {
 	const WPC_FILE_ORIGINAL = 2;
 	const WPC_FILE_THE_SAME = 3;
 
+	const CRON_SCHEDULE_HOOK = 'eucookielaw_regenerate_cache';
+	const CRON_TIMING        = 'minutely';
+	const CRON_DURATION      = 60;
+
 	private $PLUGIN_DIRECTORY;
 
 	private $showMergeButton = false;
 
-	public function EUCookieLaw() {
+	public function __construct() {
 		self::$initialized      = true;
 		$this->PLUGIN_DIRECTORY = dirname( __FILE__ );
 
-		add_action( 'plugins_loaded', array( $this, 'loadTranslations' ) );
-
 		add_action( 'init', array( $this, 'init' ), - 10 );
 
+		add_action( 'plugins_loaded', array( $this, 'loadTranslations' ) );
+		register_deactivation_hook(
+			EUCOOKIELAW_MAIN_FILE,
+			array($this, 'removeSchedule' )
+		);
+
+		register_activation_hook(
+			EUCOOKIELAW_MAIN_FILE,
+			array( $this, 'createSchedule' )
+		);
+
+
+		add_filter( 'cron_schedules', array($this, 'addMinutelySchedule') );
+		add_action( self::CRON_SCHEDULE_HOOK , array($this, 'cron'));
+		$this->createSchedule();
 		if ( is_admin() ) {
 
 			if ( ( isset( $_GET['write'] ) || count( $_POST ) > 0 ) && isset( $_GET['page'] ) && substr( $_GET['page'], 0, strlen( __CLASS__ ) ) == __CLASS__ ) {
@@ -104,15 +120,61 @@ Class EUCookieLaw {
 			}
 		}
 
+		add_action('w3_pgcache_cleanup', array($this, 'cron'), 99); // Linked to w3tc cron event
+
 		add_action('w3tc_pgcache_flush', array($this, 'pgCacheFlush'));
 		add_action('wp_cache_gc', array($this, 'pubUpdateCacheDirectory'));
 	}
+
+
 
 	public function loadTranslations() {
 
 		load_plugin_textdomain( __CLASS__, false, basename( dirname( __FILE__ ) ) . '/languages/' );
 
 		load_plugin_textdomain( self::CUSTOMDOMAIN, false, 'EUCookieLawCustom/' );
+	}
+
+	function deactivatePlugin(){
+		wp_clear_scheduled_hook(self::CRON_SCHEDULE_HOOK);
+
+		/*
+		 * TODO: I have to remove the contents from wp-config.php and the .htaccess file into the cache directory if present.
+		 * Will do it in the version 3.0.0
+		 */
+
+	}
+
+	function addMinutelySchedule( $schedules ) {
+		if(!isset($schedules[self::CRON_TIMING])){
+			$schedules[self::CRON_TIMING] = array(
+				'interval' => self::CRON_DURATION, // 60 seconds
+				'display' => __( 'Every minute', self::TEXTDOMAIN )
+			);
+		}
+
+		return $schedules;
+	}
+
+
+	public function createSchedule(){
+
+		$timestamp = wp_next_scheduled( self::CRON_SCHEDULE_HOOK);
+		if( $timestamp == false ){
+			error_log("Scheduling event every minute");
+			if(!wp_schedule_event( time() + 60, self::CRON_TIMING, self::CRON_SCHEDULE_HOOK )){
+				error_log("Problem in event scheduling, trying on the next request");
+			}
+		}
+	}
+
+	public function removeSchedule(){
+		wp_clear_scheduled_hook(self::CRON_SCHEDULE_HOOK);
+	}
+
+	function cron(){
+
+		$this->updateCacheDirectory();
 	}
 
 	private function checkWPConfigFile( $wpConfigTemplate ) {
@@ -200,33 +262,43 @@ Class EUCookieLaw {
 	<?php
 	}
 
-
 	private function updateWPConfig() {
 
 		$advancedCacheTemplate = $this->getTemplateFile( 'wp-config.fragment.php' );
 
+		$contentBlockStartEnd = '# --- EUCookieLaw ---';
+		$addToWPConfig = array(
+			$contentBlockStartEnd,
+			"# Added by EUCookieLaw",
+			"# Version: " . self::VERSION,
+			$advancedCacheTemplate,
+			"# End additions by EUCookieLaw",
+			"# --- EUCookieLaw ---",
+			""                          # Empty item to ensure the new line at the end
+		);
+
+		if(!file_exists( ABSPATH . 'wp-config.php' )){
+			$applyAtLine = '2';
+			$this->notifyMessage( sprintf(
+					__( self::ERR_MSG_CHECK_PERMS_OR_DIY, self::TEXTDOMAIN ),
+					'wp-config.php' ), 'error',
+				"# Insert at Line #$applyAtLine:\n" . implode( "\n", $addToWPConfig )
+			);
+			return false;
+		}
 		$config = file( ABSPATH . 'wp-config.php' );
 
 		$newWPConfig          = array();
-		$contentBlockStartEnd = '# --- EUCookieLaw ---';
 		$ignore               = false;
 		$nested               = false;
 		# print_r($config);
 		$applyAtLine   = 0;
-		$addToWPConfig = array();
+
 		foreach ( $config as $line => $row ) {
 			# We should put our fragment before the first require content
 			if ( ! $ignore && ! $nested && preg_match( '#^\s*require_once#', $row ) ) {
 
-
-				$addToWPConfig[] = "$contentBlockStartEnd\n";
-				$addToWPConfig[] = "# Added by EUCookieLaw\n";
-				$addToWPConfig[] = "# Version: " . self::VERSION . "\n";
-				$addToWPConfig[] = $advancedCacheTemplate . "\n";
-				$addToWPConfig[] = '# End additions by EUCookieLaw' . "\n";
-				$addToWPConfig[] = '# --- EUCookieLaw ---' . "\n";
-
-				$newWPConfig[] = implode( "", $addToWPConfig );
+				$newWPConfig[] = implode( "\n", $addToWPConfig );
 				$newWPConfig[] = $row;
 
 				$nested      = true;
@@ -367,18 +439,18 @@ Class EUCookieLaw {
 			$iniFile = array(
 
 				self::OPT_3RDPDOMAINS        => preg_replace( "#\r?\n#", ";", $domains ),
-				self::OPT_AGREE              => get_option( self::OPT_AGREE ),
+				#self::OPT_AGREE              => get_option( self::OPT_AGREE ),
 				self::OPT_COOKIE_EXPIRES     => get_option( self::OPT_COOKIE_EXPIRES ),
 				self::OPT_DEBUG              => ( get_option( self::OPT_DEBUG ) !== 'n' ) ? 'y' : 'n',
 				self::OPT_DEBUG_VERBOSITY    => ( get_option( self::OPT_DEBUG_VERBOSITY, '99')),
 				self::OPT_LOGFILE            => ( get_option( self::OPT_DEBUG ) === 'file' ) ? WP_PLUGIN_DIR . '/' . self::CUSTOMDOMAIN . '/log.txt' : '',
-				self::OPT_DISAGREE           => get_option( self::OPT_DISAGREE ),
+				#self::OPT_DISAGREE           => get_option( self::OPT_DISAGREE ),
 				self::OPT_ENABLED            => get_option( self::OPT_ENABLED ),
 				self::OPT_FIXED_ON           => get_option( self::OPT_FIXED_ON ),
 				self::OPT_LOOKINSCRIPTS      => get_option( self::OPT_LOOKINSCRIPTS ),
 				self::OPT_LOOKINTAGS         => get_option( self::OPT_LOOKINTAGS ),
-				self::OPT_MESSAGE            => get_option( self::OPT_MESSAGE ),
-				self::OPT_TITLE              => get_option( self::OPT_TITLE ),
+				#self::OPT_MESSAGE            => get_option( self::OPT_MESSAGE ),
+				#self::OPT_TITLE              => get_option( self::OPT_TITLE ),
 				self::OPT_TITLE_TAG          => get_option( self::OPT_TITLE_TAG ),
 				self::OPT_WHITELIST_COOKIES  => get_option( self::OPT_WHITELIST_COOKIES ),
 				self::OPT_BOT_AS_HUMANS      => get_option( self::OPT_BOT_AS_HUMANS ),
@@ -388,6 +460,7 @@ Class EUCookieLaw {
 				self::OPT_DEFAULT_SCRIPT_SRC => get_option( self::OPT_DEFAULT_SCRIPT_SRC, 'about:blank' ),
 				self::OPT_DEFAULT_IMAGE_SRC  => get_option( self::OPT_DEFAULT_IMAGE_SRC, 'about:blank' ),
 				self::OPT_UNAPPLY_ON_URL     => get_option( self::OPT_UNAPPLY_ON_URL, ''),
+				self::OPT_LANGUAGES          => json_encode( get_option(self::OPT_LANGUAGES, false)),
 
 			);
 			$file    = WP_CONTENT_DIR . '/cache/eucookielaw.ini';
@@ -505,8 +578,9 @@ Class EUCookieLaw {
 	}
 
 	public function adminScripts() {
+		wp_register_script( __CLASS__, plugin_dir_url( __FILE__ ) . 'EUCookieLaw-admin.js', array( 'jquery' ), self::VERSION);
 
-		wp_enqueue_script( __CLASS__, plugin_dir_url( __FILE__ ) . 'EUCookieLaw-admin.js', array( 'jquery' ), self::VERSION, true );
+		wp_enqueue_script( __CLASS__ );
 	}
 
 	public function ignoredURL(){
@@ -561,11 +635,11 @@ Class EUCookieLaw {
 
 			$customCSSURL = WP_PLUGIN_URL . '/' . self::CUSTOMDOMAIN . '/eucookielaw.css';
 			if ( file_exists( WP_PLUGIN_DIR . '/' . self::CUSTOMDOMAIN . '/eucookielaw.css' ) ) {
-				error_log( "Custom CSS '$customCSSURL' correctly attacched to the page!" );
+				# error_log( "Custom CSS '$customCSSURL' correctly attacched to the page!" );
 				wp_register_style( self::CUSTOMCSS, $customCSSURL, array( self::CSS ), self::VERSION, 'screen' );
 			} else {
 				if ( get_option( self::OPT_DEBUG, 'n' ) == 'y' ) {
-					error_log( "Custom CSS '$customCSSURL' does not exists or not reachable!" );
+					# error_log( "Custom CSS '$customCSSURL' does not exists or not reachable!" );
 				}
 			}
 
@@ -580,23 +654,36 @@ Class EUCookieLaw {
 			$cookieDuration = get_option( self::OPT_COOKIE_EXPIRES, '365' );
 			$debug          = get_option( self::OPT_DEBUG, 'n' );
 			$reload         = get_option( self::OPT_RELOAD, 'y' );
+			$raiseLoadEvent = get_option( self::OPT_RAISE_LOAD_EVENT, 'y');
 			$rememberChoice = get_option( self::OPT_REMEMBER_CHOICE, 'y' );
 
 			$whitelist = get_option( self::OPT_WHITELIST_COOKIES, array() );
 			$style     = get_option( self::OPT_BANNER_STYLE, '' );
 			$minScroll = get_option( self::OPT_SCROLL_PX, '100' );
-			// Localize the script with new data
-			# echo "The css style is: $style"; exit();
 
+			// Localize the script with new data
+			$languages = get_option( self::OPT_LANGUAGES, false);
+
+			if(!$languages){
+				$languages = array(
+					'Default' => array(
+						'title'         => $bannerTitle,
+						'message'       => $bannerMessage,
+						'agreeLabel'    => $bannerAgree,
+						'disagreeLabel' => $bannerDisagree
+					)
+				);
+			}
 
 			$configuration = array(
 				'showBanner'    => true,
+				'raiseLoadEvent'=> ( $raiseLoadEvent == 'y'),
 				'reload'        => ( $reload == 'y' ),
 				'debug'         => ( $debug == 'y' ),
-				'bannerTitle'   => htmlspecialchars( __( $bannerTitle, self::CUSTOMDOMAIN ) ),
-				'message'       => htmlspecialchars( __( $bannerMessage, self::CUSTOMDOMAIN ) ),
-				'agreeLabel'    => htmlspecialchars( __( $bannerAgree, self::CUSTOMDOMAIN ) ),
-				'disagreeLabel' => htmlspecialchars( __( $bannerDisagree, self::CUSTOMDOMAIN ) ),
+				#'bannerTitle'   => htmlspecialchars( __( $bannerTitle, self::CUSTOMDOMAIN ) ),
+				#'message'       => htmlspecialchars( __( $bannerMessage, self::CUSTOMDOMAIN ) ),
+				#'agreeLabel'    => htmlspecialchars( __( $bannerAgree, self::CUSTOMDOMAIN ) ),
+				#'disagreeLabel' => htmlspecialchars( __( $bannerDisagree, self::CUSTOMDOMAIN ) ),
 				'tag'           => $titleTag,
 				'agreeOnScroll' => ( $agreeOnScroll == 'y' ),
 				'agreeOnClick'  => ( $agreeOnClick == 'y' ),
@@ -607,6 +694,7 @@ Class EUCookieLaw {
 				'classes'       => $style,
 				'minScroll'     => $minScroll,
 				//	'id'            => 'eucookielaw-in-html',
+				'languages'     => $languages,
 
 			);
 
@@ -628,7 +716,7 @@ Class EUCookieLaw {
 			'activate_plugins',
 			self::MENU_SLUG,
 			array( $this, 'about' ) );
-		add_submenu_page( self::MENU_SLUG, "All you need to know about EUCookieLaw", __( "About", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG, array(
+		add_submenu_page( self::MENU_SLUG, __("All you need to know about EUCookieLaw", self::TEXTDOMAIN) , __( "About", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG, array(
 			$this,
 			'about'
 		) );
@@ -726,7 +814,7 @@ Class EUCookieLaw {
 	public function customizeAspect() {
 		?>
 		<p>
-			The structure of generated banner is the following:
+			<?php _e("The structure of generated banner is the following:", self::TEXTDOMAIN); ?>
 		</p>
 
 		<div class="highlight highlight-html"><pre>
@@ -739,18 +827,34 @@ Class EUCookieLaw {
 	    &lt;<span class="pl-ent">h1</span> <span class="pl-e">class</span>=<span class="pl-s"><span
 						class="pl-pds">"</span>banner-title<span class="pl-pds">"</span></span>&gt;The banner title&lt;/<span
 					class="pl-ent">h1</span>&gt;
-	    &lt;<span class="pl-ent">p</span> <span class="pl-e">class</span>=<span class="pl-s"><span
+	    &lt;<span class="pl-ent">div</span> <span class="pl-e">class</span>=<span class="pl-s"><span
 						class="pl-pds">"</span>banner-message<span class="pl-pds">"</span></span>&gt;The banner message&lt;/<span
-					class="pl-ent">p</span>&gt;
+					class="pl-ent">div</span>&gt;
+
+	    &lt;<span class="pl-ent">ul</span> <span class="pl-e">id</span>=<span class="pl-s"><span
+						class="pl-pds">"</span>eucookielaw-language-switcher<span class="pl-pds">"</span></span>&gt;
+	        &lt;<span class="pl-ent">li</span> <span class="pl-e">onclick</span>=<span class="pl-s"><span
+						class="pl-pds">"</span>(new EUCookieLaw()).switchLanguage('Italiano');<span
+						class="pl-pds">"</span></span>&gt;Italiano&lt;/<span class="pl-ent">li</span>&gt;
+
+	        &lt;<span class="pl-ent">li</span> <span class="pl-e">onclick</span>=<span class="pl-s"><span
+						class="pl-pds">"</span>(new EUCookieLaw()).switchLanguage('English');<span
+						class="pl-pds">"</span></span>&gt;English&lt;/<span class="pl-ent">li</span>&gt;
+
+	    &lt;/<span class="pl-ent">ul</span>&gt;
+
 	    &lt;<span class="pl-ent">p</span> <span class="pl-e">class</span>=<span class="pl-s"><span
 						class="pl-pds">"</span>banner-agreement-buttons text-right<span
 						class="pl-pds">"</span></span>&gt;
 	      &lt;<span class="pl-ent">a</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>disagree-button btn btn-danger<span
-						class="pl-pds">"</span></span> <span class="pl-e">onclick</span>=<span class="pl-s"><span
+						class="pl-pds">"</span></span>
+                <span class="pl-e">onclick</span>=<span class="pl-s"><span
 						class="pl-pds">"</span>(new EUCookieLaw()).reject();<span class="pl-pds">"</span></span>&gt;Disagree&lt;/<span
 					class="pl-ent">a</span>&gt;
+
 	      &lt;<span class="pl-ent">a</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>agree-button btn btn-primary<span
-						class="pl-pds">"</span></span> <span class="pl-e">onclick</span>=<span class="pl-s"><span
+						class="pl-pds">"</span></span>
+                <span class="pl-e">onclick</span>=<span class="pl-s"><span
 						class="pl-pds">"</span>(new EUCookieLaw()).enableCookies();<span
 						class="pl-pds">"</span></span>&gt;Agree&lt;/<span class="pl-ent">a</span>&gt;
 	    &lt;/<span class="pl-ent">p</span>&gt;
@@ -758,27 +862,48 @@ Class EUCookieLaw {
 	&lt;/<span class="pl-ent">div</span>&gt;</pre>
 		</div>
 
-		<ul>
-			<li><code>.eucookielaw-banner</code> is the banner container it will have a random <code>id</code>
-				attribute name that
-				starts always with <code>eucookielaw-</code> and then followed by a number between <code>0</code>
-				and <code>200</code>.
+		<ul class="help">
+			<li>
+				<code>.eucookielaw-banner</code>
+				<?php
+				_e(
+					"is the banner container it will have a random <code>id</code> attribute name that starts always with <code>eucookielaw-</code> and then followed by a number between <code>0</code> and <code>200</code>.",
+					self::TEXTDOMAIN
+					);
+				?>
 			</li>
-			<li><code>.well</code> is the inner container</li>
-			<li><code>h1.banner-title</code> is the banner title</li>
-			<li><code>p.banner-message</code> is the banner html message</li>
-			<li><code>p.banner-agreement-buttons.text-right</code> is the buttons container for the agree/disagree
-				buttons
+			<li>
+				<code>.well</code>
+				<?php _e("is the inner container", self::TEXTDOMAIN); ?>
 			</li>
-			<li><code>a.disagree-button</code> is the disagree button it implements the CSS classes <code>btn</code>
-				and <code>btn-danger</code></li>
-			<li><code>a.disagree-button</code> is the agree button it implements the CSS classes <code>btn</code>
-				and <code>btn-primary</code></li>
+			<li>
+				<code>h1.banner-title</code>
+				<?php _e("is the banner title", self::TEXTDOMAIN); ?>
+			</li>
+			<li>
+				<code>div.banner-message</code>
+				<?php _e("is the banner html message", self::TEXTDOMAIN); ?>
+			</li>
+			<li>
+				<code>ul#eucookielaw-language-switcher</code>
+				<?php _e("is the box where the language buttons are located, it is visible only if more than one language is configured", self::TEXTDOMAIN); ?>
+			</li>
+			<li>
+				<code>p.banner-agreement-buttons.text-right</code>
+				<?php _e("is the buttons container for the agree/disagree buttons", self::TEXTDOMAIN); ?>
+			</li>
+			<li>
+				<code>a.disagree-button</code>
+				<?php _e("is the disagree button it implements the CSS classes <code>btn</code> and <code>btn-danger</code>", self::TEXTDOMAIN); ?>
+			</li>
+			<li>
+				<code>a.disagree-button</code>
+				<?php _e("is the agree button it implements the CSS classes <code>btn</code> and <code>btn-primary</code>" , self::TEXTDOMAIN); ?>
+			</li>
 		</ul>
 		<p>
 
-			You can make your own CSS to build a custom aspect for the banner. However, if you prefer, you can start
-			from the bundled CSS.
+			<?php _e("You can make your own CSS to build a custom aspect for the banner. However, if you prefer, you can start from the bundled CSS.", self::TEXTDOMAIN); ?>
 		</p>
 
 	<?php
@@ -807,6 +932,12 @@ Class EUCookieLaw {
 			'eucookielaw-banner' . $screen->id,
 			__( 'Banner', self::TEXTDOMAIN ),
 			array( $this, 'bannerMetabox' ),
+			$screen, 'normal', 'high'
+		);
+		add_meta_box(
+			'eucookielaw-message' . $screen->id,
+			__( 'Messages', self::TEXTDOMAIN ),
+			array( $this, 'messagesMetabox' ),
 			$screen, 'normal', 'high'
 		);
 		add_meta_box(
@@ -1135,11 +1266,37 @@ Class EUCookieLaw {
 
 	private function updateOptions() {
 		if ( isset( $_POST['nonce'] ) && wp_verify_nonce( $_POST['nonce'], __CLASS__ ) ) {
+
 			$_POST = stripslashes_deep( $_POST );
+
+			$languages = array();
+			$deleted = isset($_POST['deleted'])?$_POST['deleted']:array();
+			foreach($_POST['banner_lang'] as $index => $lang){
+
+				if(!empty($lang) && !in_array($lang, $deleted)){
+
+					$languages[$lang] = array(
+
+						'title' => $_POST['banner_title'][$index],
+						'message' => $_POST['banner_message'][$index],
+						'agreeLabel' => $_POST['banner_agree'][$index],
+						'disagreeLabel' => $_POST['banner_disagree'][$index],
+
+					);
+				}
+			}
+
+			update_option( self::OPT_LANGUAGES, $languages);
+
 			update_option( self::OPT_TITLE, $_POST['banner_title'] );
 			update_option( self::OPT_MESSAGE, $_POST['banner_message'] );
 			update_option( self::OPT_AGREE, $_POST['banner_agree'] );
 			update_option( self::OPT_DISAGREE, $_POST['banner_disagree'] );
+
+			/*
+			 * Before it was stored as list of domains separated by new line.
+			 * Now they are stored with a space separator, better for the INI management
+			 */
 			update_option( self::OPT_3RDPDOMAINS, implode( "\n", $_POST['blocked_domains'] ) );
 			update_option( self::OPT_LOOKINTAGS, implode("|", $_POST['look_in_tags'] ) );
 			update_option( self::OPT_TITLE_TAG, $_POST['tag'] );
@@ -1151,6 +1308,7 @@ Class EUCookieLaw {
 			update_option( self::OPT_FIXED_ON, $_POST['fix_on'] );
 			update_option( self::OPT_COOKIE_EXPIRES, (int) $_POST['duration'] );
 			update_option( self::OPT_WHITELIST_COOKIES, implode( ",", $_POST['whitelist'] ) );
+			update_option( self::OPT_RAISE_LOAD_EVENT, $_POST['raise_load_event']);
 			update_option( self::OPT_RELOAD, $_POST['reload'] );
 			update_option( self::OPT_ENABLED, $_POST['enabled'] );
 			update_option( self::OPT_ENABLEDONLOGIN, $_POST['enabled_on_login'] );
@@ -1163,8 +1321,12 @@ Class EUCookieLaw {
 			update_option( self::OPT_DEFAULT_SCRIPT_SRC, $_POST['script_default_url'] );
 			update_option( self::OPT_DEFAULT_IMAGE_SRC, $_POST['image_default_url'] );
 
+			/*
+			 * Before it was stored as list of regexè separated by new line.
+			 * Now they are stored with a space separator, better for the INI management
+			 */
 			update_option( self::OPT_UNAPPLY_ON_URL, implode("\n", $_POST['disallowonurl'] ));
-
+			# update_option( self::OPT_UNAPPLY_ON_URL, implode( "\n", $_POST['disallowonurl'] ) );
 			// Empty the cache if there is one of the known cache plugin
 			$allPlugins = get_plugins();
 
@@ -1184,21 +1346,119 @@ Class EUCookieLaw {
 		}
 	}
 
-	public function bannerMetabox() {
-
-		$botAsHumans = get_option( self::OPT_BOT_AS_HUMANS, 'y' );
-
+	public function messagesMetabox(){
 		$bannerTitle    = get_option( self::OPT_TITLE, 'Banner title' );
 		$bannerMessage  = get_option( self::OPT_MESSAGE, 'Banner message' );
 		$bannerAgree    = get_option( self::OPT_AGREE, 'I agree' );
 		$bannerDisagree = get_option( self::OPT_DISAGREE, 'I disagree' );
 		$titleTag       = get_option( self::OPT_TITLE_TAG, 'h1' );
+		$languages      = get_option( self::OPT_LANGUAGES, false);
+
+
+		if($languages === false){
+			$languages = array(
+				'Default' => array(
+					'title'         => $bannerTitle,
+					'message'       => $bannerMessage,
+					'agreeLabel'    => $bannerAgree,
+					'disagreeLabel' => $bannerDisagree
+				)
+			);
+		}
+
+		?>
+		<table class="form-table">
+			<tr>
+				<th scope="row"><label for="tag"><?php _e( "HTML tag for Title", self::TEXTDOMAIN ); ?></label></th>
+				<td><input name="tag" type="text" id="tag" value="<?php echo htmlspecialchars( $titleTag ); ?>"
+				           class="regular-text"></td>
+			</tr>
+		</table>
+		<script type="text/javascript">
+			var eucookielawLanguages = <?php echo json_encode( $languages ); ?>
+		</script>
+		<ul id="eucookielaw-languages-tab">
+			<li id="add-new-language-box"><?php _e("Add new language box", self::TEXTDOMAIN); ?></li>
+		</ul>
+
+		<table class="language_box form-table">
+			<tr>
+				<td colspan="2">
+					<div class="mark-deleted">
+						<label data-alt="">
+							<input type="checkbox" value="y" name="deleted[]" />
+							<span class="active">
+								<?php _e("Click here to delete.", self::TEXTDOMAIN); ?>
+							</span>
+							<span class="deleted">
+								<?php esc_attr_e("Ready to be deleted. Just save settings to confirm or click here again to restore item", self::TEXTDOMAIN); ?>
+							</span>
+
+						</label>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e( "Language", self::TEXTDOMAIN ); ?></label>
+				</th>
+				<td>
+					<input name="banner_lang[]" type="text" data="eucookielaw-binded-lang"
+					       value="" class="regular-text" />
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e( "Banner Title", self::TEXTDOMAIN ); ?></label>
+				</th>
+				<td>
+					<input name="banner_title[]" type="text" data="eucookielaw-binded-title" id="banner_title"
+					       value="" class="regular-text">
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e( "Banner Description", self::TEXTDOMAIN ); ?></label></th>
+				<td>
+					<textarea name="banner_message[]"  data="eucookielaw-binded-message" cols="30" rows="5"
+					          class="large-text"></textarea>
+					<p>
+						<?php
+						echo sprintf(
+							__( "In the <code>%s</code> field you can write HTML.", self::TEXTDOMAIN ),
+							__( 'Banner Description', self::TEXTDOMAIN )
+						);
+						?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e( "Banner Agree button", self::TEXTDOMAIN ); ?></label></th>
+				<td>
+					<input name="banner_agree[]" type="text" data="eucookielaw-binded-agree"
+					       value="" class="regular-text">
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label><?php _e( "Banner Disagree button", self::TEXTDOMAIN ); ?></label>
+				</th>
+				<td>
+					<input name="banner_disagree[]" type="text" data="eucookielaw-binded-disagree"
+					       value="" class="regular-text">
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	public function bannerMetabox() {
+
+		$botAsHumans = get_option( self::OPT_BOT_AS_HUMANS, 'y' );
+
 		$agreeOnScroll  = get_option( self::OPT_AGREEONSCROLL, 'n' );
 		$agreeOnClick   = get_option( self::OPT_AGREEONCLICK, 'n' );
 		$fixedOn        = get_option( self::OPT_FIXED_ON, 'top' );
 		$enabled        = get_option( self::OPT_ENABLED, 'y' );
 		$enabledOnLogin = get_option( self::OPT_ENABLEDONLOGIN, 'y' );
 		$reload         = get_option( self::OPT_RELOAD, 'y' );
+		$raiseLoadEvent = get_option( self::OPT_RAISE_LOAD_EVENT, 'y' );
 		$appliedStyle   = get_option( self::OPT_BANNER_STYLE, '' );
 		$minScroll      = get_option( self::OPT_SCROLL_PX, '100' );
 		?>
@@ -1250,97 +1510,12 @@ Class EUCookieLaw {
 						</label>
 					</p>
 
-					<p>
+					<p class="help">
 						<?php _e( "If set to yes the search engines and other automated scannin systems of your site will be threated as they would be normal users", self::TEXTDOMAIN ); ?>
 					</p>
 				</td>
 			</tr>
-			<tr>
-				<th scope="row"><label for="banner_title"><?php _e( "Banner Title", self::TEXTDOMAIN ); ?></label>
-				</th>
-				<td>
-					<input name="banner_title" type="text" id="banner_title"
-					       value="<?php echo htmlspecialchars( $bannerTitle ); ?>" class="regular-text">
 
-					<p>
-						<strong><?php _e( "Multilingual support", self::TEXTDOMAIN ); ?></strong>
-						<?php echo sprintf(
-							__( 'If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN ),
-							__( "Banner Title", self::TEXTDOMAIN ),
-							"Banner title" );
-						?>
-					</p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="tag"><?php _e( "HTML tag for Title", self::TEXTDOMAIN ); ?></label></th>
-				<td><input name="tag" type="text" id="tag" value="<?php echo htmlspecialchars( $titleTag ); ?>"
-				           class="regular-text"></td>
-			</tr>
-			<tr>
-				<th scope="row"><label
-						for="banner_message"><?php _e( "Banner Description", self::TEXTDOMAIN ); ?></label></th>
-				<td>
-					<textarea name="banner_message" id="banner_message" cols="30" rows="5"
-					          class="large-text"><?php echo htmlspecialchars( $bannerMessage ); ?></textarea>
-
-					<p>
-						<?php
-						echo sprintf(
-							__( "In the <code>%s</code> field you can write HTML.", self::TEXTDOMAIN ),
-							__( 'Banner Description', self::TEXTDOMAIN )
-						);
-						?>
-					</p>
-
-					<p>
-						<strong><?php _e( "Multilingual support", self::TEXTDOMAIN ); ?></strong>
-						<?php echo sprintf(
-							__( 'If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN ),
-							__( "Banner Description", self::TEXTDOMAIN ),
-							"Banner message" );
-						?>
-					</p>
-
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label
-						for="banner_agree"><?php _e( "Banner Agree button", self::TEXTDOMAIN ); ?></label></th>
-				<td>
-					<input name="banner_agree" type="text" id="banner_agree"
-					       value="<?php echo htmlspecialchars( $bannerAgree ); ?>" class="regular-text">
-
-					<p>
-						<strong><?php _e( "Multilingual support", self::TEXTDOMAIN ); ?></strong>
-						<?php echo sprintf(
-							__( 'If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN ),
-							__( "Banner Agree button", self::TEXTDOMAIN ),
-							"I agree" );
-						?>
-					</p>
-
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label
-						for="banner_disagree"><?php _e( "Banner Disagree button", self::TEXTDOMAIN ); ?></label>
-				</th>
-				<td>
-					<input name="banner_disagree" type="text" id="banner_disagree"
-					       value="<?php echo htmlspecialchars( $bannerDisagree ); ?>" class="regular-text">
-
-					<p>
-						<strong><?php _e( "Multilingual support", self::TEXTDOMAIN ); ?></strong>
-						<?php echo sprintf(
-							__( 'If you set <code>%1$s</code> with value <code>%2$s</code> it will be acquired by the custom translation file.', self::TEXTDOMAIN ),
-							__( "Banner Disagree button", self::TEXTDOMAIN ),
-							"I disagree" );
-						?>
-					</p>
-
-				</td>
-			</tr>
 			<tr>
 				<th scope="row"><label for="fix_on"><?php _e( "Fixed on", self::TEXTDOMAIN ); ?></label></th>
 				<td>
@@ -1422,7 +1597,7 @@ Class EUCookieLaw {
 						</label>
 					</p>
 
-					<p>
+					<p class="help">
 						<?php _e( "If enabled, users can click everywhere on the page, outside the banner, to apply their consent", self::TEXTDOMAIN ); ?>
 					</p>
 				</td>
@@ -1439,6 +1614,27 @@ Class EUCookieLaw {
 						<input type="radio" value="n" name="reload" <?php echo checked( $reload, 'n' ); ?> />
 						<?php _e( 'No', self::TEXTDOMAIN ); ?>
 					</label>
+				</td>
+			</tr>
+			<tr>
+			<th scope="row"><label><?php _e( "Raise Load event on consent", self::TEXTDOMAIN ); ?></label></th>
+				<td>
+					<label>
+						<input type="radio" value="y" name="raise_load_event" <?php echo checked( $raiseLoadEvent, 'y' ); ?> />
+						<?php _e( 'Yes', self::TEXTDOMAIN ); ?>
+					</label>
+
+					<label>
+						<input type="radio" value="n" name="raise_load_event" <?php echo checked( $raiseLoadEvent, 'n' ); ?> />
+						<?php _e( 'No', self::TEXTDOMAIN ); ?>
+					</label>
+					<p class="help">
+						<?php echo sprintf(
+							__('For detailed description about the purpose of this option see issue <a href="%s">#83</a> and <a href="%s">#85</a>'),
+							'https://github.com/diegolamonica/EUCookieLaw/issues/83',
+							'https://github.com/diegolamonica/EUCookieLaw/issues/85');
+						?>
+					</p>
 				</td>
 			</tr>
 		</table>
@@ -1480,7 +1676,7 @@ Class EUCookieLaw {
 					<?php
 					}
 					?>
-					<p>
+					<p class="help">
 						<?php
 						echo sprintf(
 							__( "In the <code>%s</code> field you must type all the blocked URLs (one per field) without the protocol (eg. <code>www.google.it</code>,<code>placehold.it</code>", self::TEXTDOMAIN ),
@@ -1489,7 +1685,7 @@ Class EUCookieLaw {
 						?>
 					</p>
 
-					<p>
+					<p class="help">
 						<?php
 						echo sprintf(
 							__( "Remember that if you put a point (.) on front of URL, then it means the domain and all subdomains (eg. <code>%s</code> means <code>%s</code>, <code>%s</code>, <code>%s</code> and so on)", self::TEXTDOMAIN ),
@@ -1556,7 +1752,7 @@ Class EUCookieLaw {
 					<?php
 					}
 					?>
-					<p>
+					<p class="help">
 						<?php
 						echo sprintf(
 							__( "In the <code>%s</code> field you should report all the tags you want to look into for the given URLs", self::TEXTDOMAIN ),
@@ -1584,7 +1780,7 @@ Class EUCookieLaw {
 						</label>
 					</p>
 
-					<p>
+					<p class="help">
 						<?php _e( "If you enable this option, EUCookieLaw tries to look for the defined rules in the <code>script</code> elements of the page", self::TEXTDOMAIN ); ?>
 					</p>
 				</td>
@@ -1663,7 +1859,7 @@ Class EUCookieLaw {
 					<input name="duration" type="number" id="duration"
 					       value="<?php echo htmlspecialchars( $cookieDuration ); ?>" class="regular-text">
 
-					<p>
+					<p class="help">
 						<?php
 						_e( "Set it to <strong>0</strong> to generate a session cookie.", self::TEXTDOMAIN );
 						?>
@@ -1689,13 +1885,13 @@ Class EUCookieLaw {
 					<?php
 					}
 					?>
-					<p>
+					<p class="help">
 						<?php
 						_e( "The law, allows you to write the technical cookies of your site, so you can write here (one per field) which one are allowed.", self::TEXTDOMAIN );
 						?>
 					</p>
 
-					<p>
+					<p class="help">
 						<?php
 						_e( "<strong>Note:</strong> if you want to allow multiple cookies with the same prefix please type the prefix followed by an asterisk (eg. <code>__utm*</code>) ", self::TEXTDOMAIN );
 						?>
@@ -1721,7 +1917,7 @@ Class EUCookieLaw {
 					<?php
 					}
 					?>
-					<p>
+					<p class="help">
 						<?php
 						_e( "If your site requires that the plugin must not be enabled on some specific URL then you can use the above fields to set the URL where EUCookieLaw should be disabled. The code accepts wildchar <code>*</code> (eg. <code>/api/*</code> means everything that starts with <code>/api/</code>)", self::TEXTDOMAIN );
 						?>
@@ -1770,7 +1966,7 @@ Class EUCookieLaw {
 			</label>
 		</p>
 
-		<p>
+		<p class="help">
 			<?php _e( "When debug is enabled you can see which rules are applied and check for strange behaviors directly in the system error log or in a specific file according to debug verbosity", self::TEXTDOMAIN ) ?>
 		</p>
 		<div class="on-debug on-debug-file on-debug-y">
@@ -1828,13 +2024,13 @@ Class EUCookieLaw {
 			</label>
 		</p>
 
-		<p>
+		<p class="help">
 			<?php
 			_e( "It's reccomended to to use DOMDocument to render the page, however, if you encounter problems using this engine you can switch to Regular Expression engine", self::TEXTDOMAIN );
 			?>
 		</p>
 
-		<p>
+		<p class="help">
 			<?php
 			_e( "If DOMDocument library is not available on your host then the Regular Expression engine will be used by default", self::TEXTDOMAIN );
 			?>
@@ -1862,19 +2058,17 @@ Class EUCookieLaw {
 				   class="button button-secondary"><?php _e( "Merge with cache plugin", self::TEXTDOMAIN ); ?></a>
 			<?php
 			}
-
-			if ( defined( 'WP_CACHE' ) && WP_CACHE === true ) {
-				?>
-				<p>
-					<?php _e( "Note that, to ensure the cached contents uses the right settings from EUCookieLaw you need to empty your cache (according to specific cache plugin settings) once you have saved the configuration", self::TEXTDOMAIN ); ?>
-				</p>
-			<?php
-			}
 			?>
 		</p>
 
 		<?php
-
+		if ( defined( 'WP_CACHE' ) && WP_CACHE === true ) {
+			?>
+			<p class="help">
+				<?php _e( "Note that, to ensure the cached contents uses the right settings from EUCookieLaw you need to empty your cache (according to specific cache plugin settings) once you have saved the configuration", self::TEXTDOMAIN ); ?>
+			</p>
+		<?php
+		}
 	}
 
 	function displayFBLike() {

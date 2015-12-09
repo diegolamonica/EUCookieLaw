@@ -12,6 +12,8 @@
 if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (!defined('WP_ADMIN') || defined('WP_ADMIN') && WP_ADMIN !==true)) {
 
 	require_once dirname(__FILE__) . '/eucookielaw-wp.php';
+	require_once dirname(__FILE__) . '/INIReader.php';
+
 	if(!preg_match('#^EUCookieLaw:[^(]\(WordPress/#', $_SERVER['HTTP_USER_AGENT'] )) {
 
 		global $euc_iniFile;
@@ -30,7 +32,7 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 				if ( file_exists( EUCL_CONTENT_DIR . '/cache/eucookielaw.ini' ) ) {
 
 					# error_log("Loading the INI File");
-					$euc_iniFile = parse_ini_file( EUCL_CONTENT_DIR . '/cache/eucookielaw.ini' );
+					$euc_iniFile = new INIReader( EUCL_CONTENT_DIR . '/cache/eucookielaw.ini');
 
 				} else {
 					$euc_iniFile = array();
@@ -39,13 +41,15 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 				function EUCgetOption( $key, $defaultValue = false ) {
 					global $euc_iniFile;
 
-					$value = $defaultValue;
 					if ( function_exists( 'get_option' ) ) {
 						# error_log("Getting informations from options");
 						$value = get_option( $key, $defaultValue );
-					} elseif ( isset( $euc_iniFile[ $key ] ) ) {
+					} else {
 						# error_log("Getting informations from ini file");
-						$value = $euc_iniFile[ $key ];
+						$value = $euc_iniFile->getKey( $key );
+						if(is_null($value)){
+							$value = $defaultValue;
+						}
 					}
 
 					return $value;
@@ -75,6 +79,9 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 			$imageSrc = EUCgetOption( EUCookieLaw::OPT_DEFAULT_IMAGE_SRC, false );
 
 			$ignoredUrl = EUCgetOption( EUCookieLaw::OPT_UNAPPLY_ON_URL, '');
+
+			$languages = EUCgetOption( EUCookieLaw::OPT_LANGUAGES, false);
+			if(is_object($languages)) $languages = json_encode($languages);
 
 			if ( ! $iframeSrc ) $iframeSrc = 'about:blank';
 			if ( ! $scriptSrc ) $scriptSrc = 'about:blank';
@@ -117,6 +124,8 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 			! defined( 'EUCOOKIELAW_IMAGE_DEFAULT_SOURCE' ) && define( 'EUCOOKIELAW_IMAGE_DEFAULT_SOURCE', $imageSrc );
 
 			! defined( 'EUCOOKIELAW_IGNORED_URLS') && define( 'EUCOOKIELAW_IGNORED_URLS', $ignoredUrl);
+
+			! defined( 'EUCOOKIELAW_BANNER_LANGUAGES' ) && define( 'EUCOOKIELAW_BANNER_LANGUAGES', $languages);
 
 			require_once dirname( __FILE__ ) . '/eucookielaw-header.php';
 		}
