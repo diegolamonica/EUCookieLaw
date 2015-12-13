@@ -26,7 +26,7 @@ if (!window.Node){
 		NOTATION_NODE               : 12
 	};
 }
-var EUCOOKIELAW_VERSION = '2.7.0';
+var EUCOOKIELAW_VERSION = '2.7.0.1';
 var EUCookieLaw = (function (doc) {
 
 
@@ -54,14 +54,19 @@ var EUCookieLaw = (function (doc) {
 		buildLanguageSwitcher = function(){
 			var langSwitcher = '';
 
-			if(settings.languages && typeof(settings.languages) === 'object' && Object.keys(settings.languages).length>1){
-				langSwitcher = '<ul id="eucookielaw-language-switcher">';
-				for(var lang in settings.languages) {
-					if(!firstLanguage) firstLanguage = lang;
-					var htmlLang = lang.replace(/</g, '&lt;').replace(/"/g, '&quot;');
-					langSwitcher += '<li onclick="(new EUCookieLaw()).switchLanguage(\''+ htmlLang + '\'); return false;">' + htmlLang + '</li>';
+			if(settings.languages && typeof(settings.languages) === 'object') {
+				var keys = Object.keys(settings.languages);
+				if (keys.length > 1) {
+					langSwitcher = '<ul id="eucookielaw-language-switcher">';
+					for (var lang in settings.languages) {
+						if (!firstLanguage) firstLanguage = lang;
+						var htmlLang = lang.replace(/</g, '&lt;').replace(/"/g, '&quot;');
+						langSwitcher += '<li onclick="(new EUCookieLaw()).switchLanguage(\'' + htmlLang + '\'); return false;">' + htmlLang + '</li>';
+					}
+					langSwitcher += '</ul>';
+				}else{
+					firstLanguage = keys[0];
 				}
-				langSwitcher += '</ul>';
 			}
 			return langSwitcher;
 		},
@@ -114,6 +119,7 @@ var EUCookieLaw = (function (doc) {
 			if(settings.languages && settings.languages['']) delete settings.languages[''];
 			if(settings.languages && typeof(settings.languages) === 'object' && Object.keys(settings.languages).length>1){
 				// I will remove the default language from defaults settings, because it's managed
+				console.log("Rimuovo la lingua predefinita");
 				delete defaultSettings.languages.Default;
 
 			}else{
@@ -136,6 +142,7 @@ var EUCookieLaw = (function (doc) {
 					 */
 
 					var lonelyKey = Object.keys( settings.languages);
+
 					settings.languages.Default = settings.languages[lonelyKey];
 					delete settings.languages[lonelyKey];
 					firstLanguage = 'Default';

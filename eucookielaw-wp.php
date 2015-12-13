@@ -17,7 +17,7 @@ Class EUCookieLaw {
 	const TEXTDOMAIN = 'EUCookieLaw';
 	const CUSTOMDOMAIN = 'EUCookieLawCustom';
 	const MENU_SLUG = 'EUCookieLaw';
-	const VERSION = '2.7.0';
+	const VERSION = '2.7.1';
 	const CSS = 'EUCookieLaw_css';
 	const CUSTOMCSS = 'EUCookieLaw_css_custom';
 	const JS = 'EUCookieLaw_js';
@@ -428,7 +428,7 @@ Class EUCookieLaw {
 	}
 
 	private function hasCache() {
-		return ( file_exists( WP_CONTENT_DIR . '/cache' ) && is_dir( WP_CONTENT_DIR . '/cache' ) );
+		return ( file_exists( WP_CONTENT_DIR . '/cache' ) && is_dir( WP_CONTENT_DIR . '/cache' ) && defined('WP_CACHE') && WP_CACHE );
 	}
 
 	private function updateIniFile() {
@@ -619,6 +619,8 @@ Class EUCookieLaw {
 		$hasEnabled = get_option( self::OPT_ENABLED, false );
 		$hasTitle   = get_option( self::OPT_TITLE, false );
 
+
+
 		if( $this->ignoredURL() ){
 			$enabled = 'n';
 		}else{
@@ -674,6 +676,9 @@ Class EUCookieLaw {
 					)
 				);
 			}
+
+			error_log($debug);
+
 
 			$configuration = array(
 				'showBanner'    => true,

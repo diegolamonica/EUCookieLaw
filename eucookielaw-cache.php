@@ -35,7 +35,7 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 					$euc_iniFile = new INIReader( EUCL_CONTENT_DIR . '/cache/eucookielaw.ini');
 
 				} else {
-					$euc_iniFile = array();
+					$euc_iniFile = new INIReader();
 				}
 
 				function EUCgetOption( $key, $defaultValue = false ) {
@@ -81,7 +81,11 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 			$ignoredUrl = EUCgetOption( EUCookieLaw::OPT_UNAPPLY_ON_URL, '');
 
 			$languages = EUCgetOption( EUCookieLaw::OPT_LANGUAGES, false);
-			if(is_object($languages)) $languages = json_encode($languages);
+
+			if(is_object($languages) || is_array($languages)){
+				$languages = json_encode($languages);
+				# $title = $languages[];
+			}
 
 			if ( ! $iframeSrc ) $iframeSrc = 'about:blank';
 			if ( ! $scriptSrc ) $scriptSrc = 'about:blank';
@@ -97,15 +101,13 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 			$disagreeLink = $url . ( preg_match( '#\?#', $url ) ? '&' : '?' ) . '__eucookielaw=disagree';
 			$agreeLink    = $url . ( preg_match( '#\?#', $url ) ? '&' : '?' ) . '__eucookielaw=agree';
 
-			# error_log("Current engine is: " . $engine);
-
-			# error_log(defined('EUCOOKIELAW_USE_DOM')?"EUCOOKIELAW_USE_DOM=".EUCOOKIELAW_USE_DOM:"EUCOOKIELAW_USE_DOM not defined");
 			! defined( 'EUCOOKIELAW_USE_DOM' ) && define( 'EUCOOKIELAW_USE_DOM', $engine == 'dom' );
 			! defined( 'EUCOOKIELAW_DISALLOWED_DOMAINS' ) && define( 'EUCOOKIELAW_DISALLOWED_DOMAINS', $disalloweddDomains );
 			! defined( 'EUCOOKIELAW_LOOK_IN_TAGS' ) && define( 'EUCOOKIELAW_LOOK_IN_TAGS', $lookInTags );
 			! defined( 'EUCOOKIELAW_LOOK_IN_SCRIPTS' ) && define( 'EUCOOKIELAW_LOOK_IN_SCRIPTS', $lookInScripts == 'y' );
 
 			! defined( 'EUCOOKIELAW_BANNER_ADDITIONAL_CLASS' ) && define( 'EUCOOKIELAW_BANNER_ADDITIONAL_CLASS', 'fixedon-' . $fixedOn . ( empty( $additionalClass ) ? '' : " $additionalClass" ) );
+
 			! defined( 'EUCOOKIELAW_BANNER_TITLE' ) && define( 'EUCOOKIELAW_BANNER_TITLE', $title );
 			! defined( 'EUCOOKIELAW_BANNER_DESCRIPTION' ) && define( 'EUCOOKIELAW_BANNER_DESCRIPTION', $message );
 			! defined( 'EUCOOKIELAW_BANNER_AGREE_BUTTON' ) && define( 'EUCOOKIELAW_BANNER_AGREE_BUTTON', $agree );

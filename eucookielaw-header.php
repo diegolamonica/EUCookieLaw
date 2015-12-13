@@ -1,7 +1,7 @@
 <?php
 /**
  * EUCookieLaw: EUCookieLaw a complete solution to accomplish european law requirements about cookie consent
- * @version 2.7.0
+ * @version 2.7.1
  * @link https://github.com/diegolamonica/EUCookieLaw/
  * @author Diego La Monica (diegolamonica) <diego.lamonica@gmail.com>
  * @copyright 2015 Diego La Monica <http://diegolamonica.info>
@@ -22,7 +22,7 @@ if(!function_exists('gzdecode')) {
 
 class EUCookieLawHeader{
 
-	const VERSION = '2.7.0';
+	const VERSION = '2.7.1';
 
 	const WRITE_ON_ERROR_LOG = 0;
 	const WRITE_ON_FILE = 1;
@@ -763,7 +763,7 @@ class EUCookieLawHeader{
 		$agreeLink = EUCOOKIELAW_BANNER_AGREE_LINK;
 
 		$theTitle .=' <!-- '. EUCOOKIELAW_BANNER_LANGUAGES . ' -->';
-		$languageSwitcher = '<!-- Elements to switch between allowed languages -->';
+
 
 		if( defined('EUCOOKIELAW_BANNER_LANGUAGES') && EUCOOKIELAW_BANNER_LANGUAGES !== false ){
 
@@ -774,19 +774,28 @@ class EUCookieLawHeader{
 			} else{
 				$uri .= '?__eucookielaw=switch:';
 			}
-			$languageSwitcher .= "<ul id=\"eucookielaw-language-switcher\">";
+
+
+
 			$languageNames = array_keys((array)$langs);
+			$curLang = isset($_COOKIE['__eucookielaw_curlang']) ? $_COOKIE['__eucookielaw_curlang'] : $languageNames[0];
+			$languageSwitcher = '';
+			if(count($languageNames)>1) {
+				$languageSwitcher .= '<!-- Elements to switch between allowed languages -->';
+				$languageSwitcher .= "<ul id=\"eucookielaw-language-switcher\">";
+			}
 			$curLang = isset($_COOKIE['__eucookielaw_curlang']) ? $_COOKIE['__eucookielaw_curlang'] : $languageNames[0];
 
 			foreach($langs as $lang => $langData){
-				$languageSwitcher .=
-						$lang ?
-								('<li onclick="(new EUCookieLaw()).switchLanguage(\''.htmlspecialchars($lang).'\'); return false;">' .
-									'<a href="' . $uri . $lang . '">'.
-										htmlspecialchars($lang) .
-									'</a>'.
-								'</li>') : '';
-
+				if(count($languageNames)>1) {
+					$languageSwitcher .=
+							$lang ?
+									( '<li onclick="(new EUCookieLaw()).switchLanguage(\'' . htmlspecialchars( $lang ) . '\'); return false;">' .
+									  '<a href="' . $uri . $lang . '">' .
+									  htmlspecialchars( $lang ) .
+									  '</a>' .
+									  '</li>' ) : '';
+				}
 				if($lang == $curLang){
 					$theTitle   = $langData->title;
 					$theMessage = $langData->message;
@@ -795,7 +804,9 @@ class EUCookieLawHeader{
 				}
 
 			}
-			$languageSwitcher .= "</ul>";
+			if(count($languageNames)>1) {
+				$languageSwitcher .= "</ul>";
+			}
 		}
 
 		if( !empty($disagree) ) {
@@ -823,6 +834,7 @@ EOT;
 		}
 
 		if ( EUCOOKIELAW_DEBUG ) {
+			error_log( 'Debug: ' . var_export(EUCOOKIELAW_DEBUG) );
 			$buffer = "<!-- (EUCookieLaw Debug Enabled) -->\n" .
 				"<!-- " . self::VERSION . " -->\n" .
 				(( class_exists('DOMDocument') && ( !defined('EUCOOKIELAW_USE_DOM') || defined('EUCOOKIELAW_USE_DOM') && EUCOOKIELAW_USE_DOM==true)) ? "<!-- Using DOMDocument -->\n": '').

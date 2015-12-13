@@ -463,6 +463,14 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
+## 2.7.1
+* **IMPROVEMENTS**: \[WP\] a better way to recognize if there is a cache plugin installed
+* **BUGFIX**: \[WP\] `Warning: Constants may only evaluate to scalar values` bugfix (issue #87)
+* **BUGFIX**: If the only language configured is **Default** a javascript error occours (issue #88)
+* **BUGFIX**: \[WP\] INIReader.php file was missing (solves issue #86 and part of issue #87)
+* **BUGFIX**: \[WP\] Resolved an issue that has broken the Customizer.
+
+
 ## 2.7.0
 * **NEW**: In the JavaScript file `EUCookieLaw.js` now is available the variable `EUCOOKIELAW_VERSION` with the number of current version.
 * **NEW**: Now you can set the cookie policy's banner with multiple languages

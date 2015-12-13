@@ -9,7 +9,8 @@
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 jQuery(document).ready(function($) {
-	if( pagenow !== 'eu-cookie-law_page_EUCookieLaw-settings') return;
+
+	if(window['pagenow'] === undefined || pagenow !== 'eu-cookie-law_page_EUCookieLaw-settings') return;
 
 	var EUCookieLawServices = {};
 	var mode = 'export';

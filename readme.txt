@@ -4,7 +4,7 @@ Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cook
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Requires at least: 4.0
 Tested up to: 4.4
-Stable tag: 2.7.0
+Stable tag: 2.7.1
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,12 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+## 2.7.1
+* **IMPROVEMENTS**: \[WP\] a better way to recognize if there is a cache plugin installed
+* **BUGFIX**: \[WP\] `Warning: Constants may only evaluate to scalar values` bugfix (issue #87)
+* **BUGFIX**: If the only language configured is **Default** a javascript error occours (issue #88)
+* **BUGFIX**: \[WP\] INIReader.php file was missing (solves issue #86 and part of issue #87)
+* **BUGFIX**: \[WP\] Resolved an issue that has broken the Customizer.
 
 = 2.7.0 =
 * **NEW**: In the JavaScript file `EUCookieLaw.js` now is available the variable `EUCOOKIELAW_VERSION` with the number of current version.

@@ -1,18 +1,13 @@
 <?php
 
-/**
- * Created by PhpStorm.
- * User: diego
- * Date: 07/12/15
- * Time: 17.32
- */
 class INIReader {
-	private $_file;
+	private $file = array();
 
-	public function __construct($file) {
+	public function __construct($file = null) {
 
-		$this->file = file($file);
-
+		if(!is_null($file)) {
+			$this->file = file( $file );
+		}
 
 	}
 
