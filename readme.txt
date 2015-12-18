@@ -4,7 +4,7 @@ Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cook
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Requires at least: 4.0
 Tested up to: 4.4
-Stable tag: 2.7.1
+Stable tag: 2.7.2
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,7 +47,13 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
-## 2.7.1
+
+= 2.7.2 =
+* **BUGFIX**: If some contents to be blocked are present before the `EUCookieLaw.js` file inclusion the page will become broken.
+* **BUGFIX**: \[WP\] `Warning: Constants may only evaluate to scalar values` bugfix (issue #89)
+* Updated the version number
+
+= 2.7.1 =
 * **IMPROVEMENTS**: \[WP\] a better way to recognize if there is a cache plugin installed
 * **BUGFIX**: \[WP\] `Warning: Constants may only evaluate to scalar values` bugfix (issue #87)
 * **BUGFIX**: If the only language configured is **Default** a javascript error occours (issue #88)

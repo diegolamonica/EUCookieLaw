@@ -17,7 +17,7 @@ Class EUCookieLaw {
 	const TEXTDOMAIN = 'EUCookieLaw';
 	const CUSTOMDOMAIN = 'EUCookieLawCustom';
 	const MENU_SLUG = 'EUCookieLaw';
-	const VERSION = '2.7.1';
+	const VERSION = '2.7.2';
 	const CSS = 'EUCookieLaw_css';
 	const CUSTOMCSS = 'EUCookieLaw_css_custom';
 	const JS = 'EUCookieLaw_js';

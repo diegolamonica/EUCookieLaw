@@ -108,10 +108,10 @@ if(defined('EUCOOKIELAW_FORCE_AS_CACHE') || defined('WP_CACHE') && WP_CACHE && (
 
 			! defined( 'EUCOOKIELAW_BANNER_ADDITIONAL_CLASS' ) && define( 'EUCOOKIELAW_BANNER_ADDITIONAL_CLASS', 'fixedon-' . $fixedOn . ( empty( $additionalClass ) ? '' : " $additionalClass" ) );
 
-			! defined( 'EUCOOKIELAW_BANNER_TITLE' ) && define( 'EUCOOKIELAW_BANNER_TITLE', $title );
-			! defined( 'EUCOOKIELAW_BANNER_DESCRIPTION' ) && define( 'EUCOOKIELAW_BANNER_DESCRIPTION', $message );
-			! defined( 'EUCOOKIELAW_BANNER_AGREE_BUTTON' ) && define( 'EUCOOKIELAW_BANNER_AGREE_BUTTON', $agree );
-			! defined( 'EUCOOKIELAW_BANNER_DISAGREE_BUTTON' ) && define( 'EUCOOKIELAW_BANNER_DISAGREE_BUTTON', $disagree );
+			#! defined( 'EUCOOKIELAW_BANNER_TITLE' ) && define( 'EUCOOKIELAW_BANNER_TITLE', $title );
+			#! defined( 'EUCOOKIELAW_BANNER_DESCRIPTION' ) && define( 'EUCOOKIELAW_BANNER_DESCRIPTION', $message );
+			#! defined( 'EUCOOKIELAW_BANNER_AGREE_BUTTON' ) && define( 'EUCOOKIELAW_BANNER_AGREE_BUTTON', $agree );
+			#! defined( 'EUCOOKIELAW_BANNER_DISAGREE_BUTTON' ) && define( 'EUCOOKIELAW_BANNER_DISAGREE_BUTTON', $disagree );
 
 			! defined( 'EUCOOKIELAW_BANNER_AGREE_LINK' ) && define( 'EUCOOKIELAW_BANNER_AGREE_LINK', $agreeLink );
 			! defined( 'EUCOOKIELAW_BANNER_DISAGREE_LINK' ) && define( 'EUCOOKIELAW_BANNER_DISAGREE_LINK', $disagreeLink );

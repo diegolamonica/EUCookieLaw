@@ -463,6 +463,12 @@ If you want to get involved in this plugin development, then fork the repository
 
 # Changelog
 
+## 2.7.2
+
+* **BUGFIX**: If some contents to be blocked are present before the `EUCookieLaw.js` file inclusion the page will become broken.
+* **BUGFIX**: \[WP\] `Warning: Constants may only evaluate to scalar values` bugfix (issue #89)
+* Updated the version number
+
 ## 2.7.1
 * **IMPROVEMENTS**: \[WP\] a better way to recognize if there is a cache plugin installed
 * **BUGFIX**: \[WP\] `Warning: Constants may only evaluate to scalar values` bugfix (issue #87)

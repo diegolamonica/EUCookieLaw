@@ -584,7 +584,7 @@ var EUCookieLaw = (function (doc) {
 	};
 })(document);
 
-var EUCookieLawHTMLFragments = [];
+var EUCookieLawHTMLFragments = EUCookieLawHTMLFragments || [];
 function eucookieLawWriteHTML(context, index){
 
 	var docFrag = document.createDocumentFragment(),
