@@ -1,10 +1,10 @@
 === EUCookieLaw ===
 Contributors: Diego La Monica
-Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo, cookie block, cookie consent, cookie policy, cookie banner
+Tags: Cookie, Cookie Law, Law Compliance, EU Cookie Law, blocco preventivo
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40diegolamonica%2einfo&lc=IT&item_name=EU%20Cookie%20Law&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest
 Requires at least: 4.0
-Tested up to: 4.4
-Stable tag: 2.7.2
+Tested up to: 6.8.1
+Stable tag: 2.7.4
 License: LGPLv3
 License URI: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
 
@@ -47,6 +47,14 @@ For manual installation via FTP
 1. The configuration page
 
 == Changelog ==
+
+= 2.7.4 =
+* **SECURITY_UPDATE**: Hardening of the already applied security fix.
+* Updated the version number
+
+= 2.7.3 =
+* **SECURITY_UPDATE**: Fixed unchecked file access in W3 Total Cache.
+* Updated the version number
 
 = 2.7.2 =
 * **BUGFIX**: If some contents to be blocked are present before the `EUCookieLaw.js` file inclusion the page will become broken.
