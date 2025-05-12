@@ -173,6 +173,7 @@ var EUCookieLaw = (function (doc) {
 			cookieEnabled: false,
 			cookieRejected: false,
 			showBanner: false,
+			isAllowedForUserRoles: false,
 			/**
 			 * @deprecated
 			 */
@@ -581,6 +582,9 @@ var EUCookieLaw = (function (doc) {
 				documentWrite.apply(document,[buffer]);
 			}
 		};
+		if(options.isAllowedForUserRoles) {
+			return this.enableCookies();
+		}
 	};
 })(document);
 

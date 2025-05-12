@@ -59,6 +59,7 @@ Class EUCookieLaw {
 	const OPT_DEFAULT_IMAGE_SRC = 'default_image_src';
 
 	const OPT_UNAPPLY_ON_URL = 'eucookielaw_unapply_on_url';
+	const OPT_AUTO_ENABLED_ROLES = 'eucookielaw_auto_enabled_roles';
 
 	const COOKIE_NAME = '__eucookielaw';
 
@@ -461,6 +462,7 @@ Class EUCookieLaw {
 				self::OPT_DEFAULT_IMAGE_SRC  => get_option( self::OPT_DEFAULT_IMAGE_SRC, 'about:blank' ),
 				self::OPT_UNAPPLY_ON_URL     => get_option( self::OPT_UNAPPLY_ON_URL, ''),
 				self::OPT_LANGUAGES          => json_encode( get_option(self::OPT_LANGUAGES, false)),
+				self::OPT_AUTO_ENABLED_ROLES  => json_encode( explode(',', get_option(self::OPT_AUTO_ENABLED_ROLES, '[]'))),
 
 			);
 			$file    = WP_CONTENT_DIR . '/cache/eucookielaw.ini';
@@ -531,6 +533,36 @@ Class EUCookieLaw {
 			$GLOBALS['pagenow'],
 			array( 'wp-login.php', 'wp-register.php' )
 		);
+	}
+
+	private function getAvailableWPUserRoles() {
+		$roles = array();
+		foreach ( get_editable_roles() as $role => $details ) {
+			$roles[] = $role;
+		}
+		return $roles;
+	}
+
+	private function isAutoEnabledForRolesActive() {
+		if( !is_user_logged_in() ) {
+			return false;
+		}
+		$roles = is_array( get_option( self::OPT_AUTO_ENABLED_ROLES, false ) ) ? get_option( self::OPT_AUTO_ENABLED_ROLES, false ) : explode(',', get_option( self::OPT_AUTO_ENABLED_ROLES, false ) );
+		if( empty($roles) ) {
+			return false;
+		}
+		$user = wp_get_current_user();
+		$hasRole = false;
+		foreach($roles as $role){
+			if( in_array($role, $user->roles) ){
+				$hasRole = true;
+				break;
+			}
+		}
+		if( $hasRole ){
+			return true;
+		}
+		return false;	
 	}
 
 	public function init() {
@@ -618,6 +650,7 @@ Class EUCookieLaw {
 		$enabled    = get_option( self::OPT_ENABLED, 'n' );
 		$hasEnabled = get_option( self::OPT_ENABLED, false );
 		$hasTitle   = get_option( self::OPT_TITLE, false );
+		$isAllowedForUserRoles = false;
 
 
 
@@ -628,6 +661,10 @@ Class EUCookieLaw {
 			if ( ! $hasEnabled && $hasTitle ) {
 				$enabled = 'y';
 			}
+		}
+
+		if($this->isAutoEnabledForRolesActive()) {
+			$isAllowedForUserRoles = true;
 		}
 
 		if ( $enabled == 'y' ) {
@@ -700,6 +737,7 @@ Class EUCookieLaw {
 				'minScroll'     => $minScroll,
 				//	'id'            => 'eucookielaw-in-html',
 				'languages'     => $languages,
+				'isAllowedForUserRoles' => $isAllowedForUserRoles
 
 			);
 
@@ -1325,6 +1363,7 @@ Class EUCookieLaw {
 			update_option( self::OPT_DEFAULT_IFRAME_SRC, $_POST['iframe_default_url'] );
 			update_option( self::OPT_DEFAULT_SCRIPT_SRC, $_POST['script_default_url'] );
 			update_option( self::OPT_DEFAULT_IMAGE_SRC, $_POST['image_default_url'] );
+			update_option( self::OPT_AUTO_ENABLED_ROLES, implode( ',', $_POST['auto_enabled_roles'] ) );
 
 			/*
 			 * Before it was stored as list of regexè separated by new line.
@@ -1466,6 +1505,9 @@ Class EUCookieLaw {
 		$raiseLoadEvent = get_option( self::OPT_RAISE_LOAD_EVENT, 'y' );
 		$appliedStyle   = get_option( self::OPT_BANNER_STYLE, '' );
 		$minScroll      = get_option( self::OPT_SCROLL_PX, '100' );
+		$rolesSelected  = get_option( self::OPT_AUTO_ENABLED_ROLES, array() );
+		$availableWPRoles = $this->getAvailableWPUserRoles();
+		$rolesSelectArray = is_array( $rolesSelected ) ? $rolesSelected : explode( ',', $rolesSelected )
 		?>
 		<table class="form-table">
 			<tr>
@@ -1496,6 +1538,30 @@ Class EUCookieLaw {
 						       name="enabled_on_login" <?php echo checked( $enabledOnLogin, 'n' ); ?> />
 						<?php _e( 'No', self::TEXTDOMAIN ); ?>
 					</label>
+				</td>
+			</tr>
+			<tr>
+                 <th scope="row">
+					<label>
+						<?php _e( "Automatically accepted for these roles", self::TEXTDOMAIN ); ?>
+					</label>		
+				</th>
+				<td>
+					<?php
+					foreach ( $availableWPRoles as $role ) {
+						?>
+						<label>
+							<input type="checkbox" value="<?php echo $role; ?>"
+							       name="auto_enabled_roles[]"
+							       <?php echo in_array( $role, $rolesSelectArray ) ? 'checked' : ''; ?> />
+							<?php echo $role; ?>
+						</label><br/>
+					<?php
+					}
+					?>
+					<p class="help">
+						<?php _e( "If the user is logged in with one of these roles, the banner will be automatically accepted", self::TEXTDOMAIN ); ?>
+					</p>
 				</td>
 			</tr>
 			<tr>

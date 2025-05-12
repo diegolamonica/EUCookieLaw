@@ -2,19 +2,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: EUCookieLaw\n"
 "POT-Creation-Date: 2015-12-08 11:07+0100\n"
-"PO-Revision-Date: 2015-12-08 11:07+0100\n"
+"PO-Revision-Date: 2025-05-12 11:19+0200\n"
 "Last-Translator: Diego La Monica <diego.lamonica@gmail.com>\n"
 "Language-Team: Diego La Monica <diego.lamonica@gmail.com>\n"
 "Language: it_IT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 3.6\n"
 "X-Poedit-KeywordsList: _;gettext;gettext_noop;_e;__\n"
-"X-Poedit-Basepath: .\n"
+"X-Poedit-Basepath: ..\n"
 "X-Poedit-SourceCharset: UTF-8\n"
-"X-Poedit-SearchPath-0: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/"
-"eucookielaw\n"
+"X-Poedit-SearchPath-0: eucookielaw.php\n"
 
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:151
 msgid "Every minute"
@@ -349,6 +348,16 @@ msgstr ""
 msgid "Manage bots as humans"
 msgstr ""
 
+#: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1456
+msgid "Automatically accepted for these roles"
+msgstr ""
+
+
+#: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1457
+msgid "If the user is logged in with one of these roles, the banner will be automatically accepted"
+msgstr ""
+
+
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1472
 msgid ""
 "If set to yes the search engines and other automated scannin systems of your "
@@ -423,16 +432,16 @@ msgstr ""
 #, php-format
 msgid ""
 "In the <code>%s</code> field you must type all the blocked URLs (one per "
-"field) without the protocol (eg. <code>www.google.it</code>,<code>placehold."
-"it</code>"
+"field) without the protocol (eg. <code>www.google.it</code>,"
+"<code>placehold.it</code>"
 msgstr ""
 
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1628
 #, php-format
 msgid ""
 "Remember that if you put a point (.) on front of URL, then it means the "
-"domain and all subdomains (eg. <code>%s</code> means <code>%s</code>, <code>"
-"%s</code>, <code>%s</code> and so on)"
+"domain and all subdomains (eg. <code>%s</code> means <code>%s</code>, "
+"<code>%s</code>, <code>%s</code> and so on)"
 msgstr ""
 
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1637

@@ -442,6 +442,14 @@ msgstr "Abilita sulla pagina di autenticazione"
 msgid "Manage bots as humans"
 msgstr "Tratta i bots come umani"
 
+#: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1498
+msgid "Automatically accepted for these roles"
+msgstr "Accettato automaticamente per i seguenti ruoli utente"
+
+#: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1499
+msgid "If the user is logged in with one of these roles, the banner will be automatically accepted"
+msgstr "Se l'utente corrente ha uno di questi ruoli, il banner viene automaticamente accettato"
+
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1514
 msgid ""
 "If set to yes the search engines and other automated scannin systems of your "
