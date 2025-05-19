@@ -320,6 +320,10 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
+#: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1427
+msgid "Minimum role required to manage this plugin"
+msgstr ""
+
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1429
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1444
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1461
