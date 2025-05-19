@@ -718,18 +718,19 @@ Class EUCookieLaw {
 	public function admin() {
 		add_menu_page(
 			"EU Cookie Law", "EU Cookie Law",
-			'activate_plugins',
+			'edit_others_posts',
 			self::MENU_SLUG,
 			array( $this, 'about' ) );
-		add_submenu_page( self::MENU_SLUG, __("All you need to know about EUCookieLaw", self::TEXTDOMAIN) , __( "About", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG, array(
+			
+		add_submenu_page( self::MENU_SLUG, __("All you need to know about EUCookieLaw", self::TEXTDOMAIN) , __( "About", self::TEXTDOMAIN ), "edit_others_posts", self::MENU_SLUG, array(
 			$this,
 			'about'
 		) );
-		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Settings", self::TEXTDOMAIN ), __( "Settings", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG . '-settings', array(
+		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Settings", self::TEXTDOMAIN ), __( "Settings", self::TEXTDOMAIN ), "edit_others_posts", self::MENU_SLUG . '-settings', array(
 			$this,
 			'settings'
 		) );
-		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Tools", self::TEXTDOMAIN ), __( "Tools", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG . '-tools', array(
+		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Tools", self::TEXTDOMAIN ), __( "Tools", self::TEXTDOMAIN ), "edit_others_posts", self::MENU_SLUG . '-tools', array(
 			$this,
 			'tools'
 		) );
