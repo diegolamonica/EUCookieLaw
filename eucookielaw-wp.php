@@ -82,7 +82,7 @@ Class EUCookieLaw {
 	private $managePluginRolesMap = array(
 		'network_admin' => 'manage_network',
 		'admin' => 'manage_options',
-		'editor'     => 'edit_others_posts',
+		'editor' => 'edit_others_posts',
 		'author' => 'publish_posts',
 		'contributor' => 'edit_posts',
 	);
@@ -1479,7 +1479,7 @@ Class EUCookieLaw {
 		$raiseLoadEvent = get_option( self::OPT_RAISE_LOAD_EVENT, 'y' );
 		$appliedStyle   = get_option( self::OPT_BANNER_STYLE, '' );
 		$minScroll      = get_option( self::OPT_SCROLL_PX, '100' );
-		$manageRoleChosen     = get_option( self::OPT_MANAGE_ROLE, 'manage_options' );
+		$managedRole    = get_option( self::OPT_MANAGE_ROLE, 'manage_options' );
 		?>
 		<table class="form-table">
 			<tr>
@@ -1505,7 +1505,7 @@ Class EUCookieLaw {
 						foreach ( $this->managePluginRolesMap as $role => $description ) {
 							?>
 							<option
-								value="<?php echo $description; ?>" <?php echo selected( $description, $manageRoleChosen ); ?> ><?php echo $role; ?></option>
+								value="<?php echo $description; ?>" <?php echo selected( $description, $managedRole ); ?> ><?php echo $role; ?></option>
 						<?php
 						}
 						?>
