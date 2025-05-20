@@ -411,6 +411,10 @@ msgstr "Etichetta pulsante di rifiuto"
 msgid "Enabled"
 msgstr "Abilitato"
 
+#: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1469
+msgid "Minimum role required to manage this plugin"
+msgstr "Ruolo utente minimo richiesto per gestire questo plugin"
+
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1471
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1486
 #: /home/diego/sviluppo/php/wp-cookie/wp-content/plugins/eucookielaw/eucookielaw-wp.php:1503

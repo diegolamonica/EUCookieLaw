@@ -59,6 +59,7 @@ Class EUCookieLaw {
 	const OPT_DEFAULT_IMAGE_SRC = 'default_image_src';
 
 	const OPT_UNAPPLY_ON_URL = 'eucookielaw_unapply_on_url';
+	const OPT_MANAGE_ROLE = 'eucookielaw_manage_role';
 
 	const COOKIE_NAME = '__eucookielaw';
 
@@ -77,6 +78,14 @@ Class EUCookieLaw {
 	private $PLUGIN_DIRECTORY;
 
 	private $showMergeButton = false;
+
+	private $managePluginRolesMap = array(
+		'network_admin' => 'manage_network',
+		'admin' => 'manage_options',
+		'editor' => 'edit_others_posts',
+		'author' => 'publish_posts',
+		'contributor' => 'edit_posts',
+	);
 
 	public function __construct() {
 		self::$initialized      = true;
@@ -461,6 +470,7 @@ Class EUCookieLaw {
 				self::OPT_DEFAULT_IMAGE_SRC  => get_option( self::OPT_DEFAULT_IMAGE_SRC, 'about:blank' ),
 				self::OPT_UNAPPLY_ON_URL     => get_option( self::OPT_UNAPPLY_ON_URL, ''),
 				self::OPT_LANGUAGES          => json_encode( get_option(self::OPT_LANGUAGES, false)),
+				self::OPT_MANAGE_ROLE        => get_option( self::OPT_MANAGE_ROLE, 'manage_options' ),
 
 			);
 			$file    = WP_CONTENT_DIR . '/cache/eucookielaw.ini';
@@ -716,20 +726,22 @@ Class EUCookieLaw {
 	}
 
 	public function admin() {
+		$manageRole = get_option( self::OPT_MANAGE_ROLE, 'manage_options' );
 		add_menu_page(
 			"EU Cookie Law", "EU Cookie Law",
-			'activate_plugins',
+			$manageRole,
 			self::MENU_SLUG,
 			array( $this, 'about' ) );
-		add_submenu_page( self::MENU_SLUG, __("All you need to know about EUCookieLaw", self::TEXTDOMAIN) , __( "About", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG, array(
+			
+		add_submenu_page( self::MENU_SLUG, __("All you need to know about EUCookieLaw", self::TEXTDOMAIN) , __( "About", self::TEXTDOMAIN ), $manageRole, self::MENU_SLUG, array(
 			$this,
 			'about'
 		) );
-		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Settings", self::TEXTDOMAIN ), __( "Settings", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG . '-settings', array(
+		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Settings", self::TEXTDOMAIN ), __( "Settings", self::TEXTDOMAIN ), $manageRole, self::MENU_SLUG . '-settings', array(
 			$this,
 			'settings'
 		) );
-		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Tools", self::TEXTDOMAIN ), __( "Tools", self::TEXTDOMAIN ), "activate_plugins", self::MENU_SLUG . '-tools', array(
+		add_submenu_page( self::MENU_SLUG, __( "EUCookieLaw Tools", self::TEXTDOMAIN ), __( "Tools", self::TEXTDOMAIN ), $manageRole, self::MENU_SLUG . '-tools', array(
 			$this,
 			'tools'
 		) );
@@ -1325,6 +1337,7 @@ Class EUCookieLaw {
 			update_option( self::OPT_DEFAULT_IFRAME_SRC, $_POST['iframe_default_url'] );
 			update_option( self::OPT_DEFAULT_SCRIPT_SRC, $_POST['script_default_url'] );
 			update_option( self::OPT_DEFAULT_IMAGE_SRC, $_POST['image_default_url'] );
+			update_option( self::OPT_MANAGE_ROLE, $_POST['manage_role'] );
 
 			/*
 			 * Before it was stored as list of regexè separated by new line.
@@ -1466,6 +1479,7 @@ Class EUCookieLaw {
 		$raiseLoadEvent = get_option( self::OPT_RAISE_LOAD_EVENT, 'y' );
 		$appliedStyle   = get_option( self::OPT_BANNER_STYLE, '' );
 		$minScroll      = get_option( self::OPT_SCROLL_PX, '100' );
+		$managedRole    = get_option( self::OPT_MANAGE_ROLE, 'manage_options' );
 		?>
 		<table class="form-table">
 			<tr>
@@ -1482,6 +1496,22 @@ Class EUCookieLaw {
 					</label>
 				</td>
 			</tr>
+			<?php if( current_user_can( 'manage_options' ) ): ?>
+            <tr>
+				<th scope="row"><label><?php _e( "Minimum role required to manage this plugin", self::TEXTDOMAIN ); ?></label></th>
+				<td>
+					<select name="manage_role" id="manage_role">
+						<?php
+						foreach ( $this->managePluginRolesMap as $role => $description ) {
+							?>
+							<option
+								value="<?php echo $description; ?>" <?php echo selected( $description, $managedRole ); ?> ><?php echo $role; ?></option>
+						<?php
+						}
+						?>
+					</select>
+			</tr>
+			<?php endif; ?>
 			<tr>
 				<th scope="row"><label><?php _e( "Enabled on login page", self::TEXTDOMAIN ); ?></label></th>
 				<td>
